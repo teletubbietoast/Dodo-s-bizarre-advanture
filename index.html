@@ -6,44 +6,61 @@
     <title>Brawler P2P Multiplayer</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #2b2b2b; color: #fff; margin: 0; padding: 20px; transition: background-color 0.2s; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e24; color: #fff; margin: 0; padding: 20px; transition: background-color 0.2s; }
         h1, h2, h3 { color: #f1c40f; margin-top: 5px; }
-        .container { max-width: 900px; margin: 0 auto; background: #333; padding: 20px; border-radius: 10px; position: relative; }
+        .container { max-width: 950px; margin: 0 auto; background: #2b2b36; padding: 20px; border-radius: 12px; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
         .screen { display: none; }
         .screen.active { display: block; }
-        input, button { padding: 10px 15px; font-size: 16px; margin: 5px; border-radius: 5px; border: none; }
-        button { background: #e74c3c; color: white; cursor: pointer; }
-        button:hover { background: #c0392b; }
+        input, button { padding: 10px 15px; font-size: 16px; margin: 5px; border-radius: 6px; border: none; }
+        button { background: #e74c3c; color: white; cursor: pointer; font-weight: bold; transition: background 0.2s, transform 0.1s; }
+        button:hover { background: #c0392b; transform: scale(1.02); }
         
-        .stats-dashboard { background: #222; border: 2px solid #f1c40f; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .stat-box { background: #444; padding: 8px 12px; border-radius: 5px; font-weight: bold; }
+        /* Stats Dashboard */
+        .stats-dashboard { background: #1e1e24; border: 2px solid #f1c40f; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .stat-box { background: #3a3a4c; padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #555; }
         
-        .players-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
-        .player-card { background: #444; padding: 10px 15px; border-radius: 6px; cursor: pointer; flex: 1; min-width: 140px; border: 2px solid transparent; position: relative; transition: transform 0.1s; }
+        /* Players Grid & Turn Indicators */
+        .players-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 15px; }
+        .player-card { background: #3a3a4c; padding: 12px 16px; border-radius: 8px; cursor: pointer; flex: 1; min-width: 160px; border: 3px solid #555; position: relative; transition: all 0.3s ease; }
         .player-card:hover { border-color: #f1c40f; }
-        .player-card.dead { opacity: 0.4; background: #222; text-decoration: line-through; }
-        .player-card.active-turn { border-color: #e74c3c; box-shadow: 0 0 10px #e74c3c; }
+        .player-card.dead { opacity: 0.35; background: #1a1a20; text-decoration: line-through; border-color: #333; }
+        .player-card.active-turn { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; animation: turnPulse 1.5s infinite alternate; }
+        @keyframes turnPulse { 0% { box-shadow: 0 0 8px #e74c3c; } 100% { box-shadow: 0 0 20px #e74c3c, 0 0 30px #f39c12; } }
+        
+        .turn-badge { display: none; background: #e74c3c; color: #fff; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; position: absolute; top: -10px; right: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .active-turn .turn-badge { display: block; }
 
-        .card-selection { display: flex; gap: 15px; margin-top: 15px; }
-        .game-card { background: #ecf0f1; color: #2c3e50; padding: 15px; border-radius: 8px; cursor: pointer; flex: 1; border: 4px solid #bdc3c7; }
+        /* Card Selection & Legendary Effects */
+        .card-selection { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
+        .game-card { background: #ecf0f1; color: #2c3e50; padding: 15px; border-radius: 10px; cursor: pointer; flex: 1; min-width: 200px; border: 4px solid #bdc3c7; transition: transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.4); }
         .rarity-Common { border-color: #95a5a6; }
         .rarity-Uncommon { border-color: #2ecc71; }
         .rarity-Rare { border-color: #3498db; }
-        .rarity-Legendary { border-color: #f1c40f; }
-        
+        .rarity-Legendary { border-color: #f1c40f; background: linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%); animation: legendaryGlow 2s infinite alternate; }
+        @keyframes legendaryGlow { 0% { box-shadow: 0 0 10px #f1c40f; } 100% { box-shadow: 0 0 25px #f39c12, 0 0 10px #e67e22; } }
+        .legendary-tag { background: #f1c40f; color: #000; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px; position: absolute; top: 5px; right: 5px; }
+
+        /* Dice & Roll Animations */
         .dice-container { text-align: center; margin: 20px 0; }
-        .dice { display: inline-block; width: 60px; height: 60px; background: #e74c3c; color: white; font-size: 28px; font-weight: bold; line-height: 60px; border-radius: 10px; border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
-        .rolling { animation: spin 0.15s infinite linear; }
+        .dice { display: inline-block; width: 70px; height: 70px; background: #e74c3c; color: white; font-size: 32px; font-weight: bold; line-height: 70px; border-radius: 14px; border: 4px solid #fff; box-shadow: 0 6px 12px rgba(0,0,0,0.5); transition: all 0.3s; }
+        .dice.crit { background: #f1c40f; color: #000; border-color: #f39c12; animation: critPulse 0.5s infinite alternate; }
+        @keyframes critPulse { 0% { transform: scale(1); box-shadow: 0 0 10px #f1c40f; } 100% { transform: scale(1.2); box-shadow: 0 0 30px #f1c40f; } }
+        .rolling { animation: spin 0.12s infinite linear; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Visuele effecten */
-        .damage-pop { position: absolute; color: #ff4757; font-size: 32px; font-weight: bold; animation: floatUp 1.2s forwards; pointer-events: none; z-index: 99; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
-        .flash-damage { background-color: #ff4757 !important; }
+        /* Damage & Crit Effects */
+        .damage-pop { position: absolute; color: #ff4757; font-size: 36px; font-weight: 900; animation: floatUp 1.2s forwards; pointer-events: none; z-index: 99; text-shadow: 0 2px 4px #000; }
+        .crit-pop { color: #f1c40f; font-size: 44px; text-shadow: 0 0 10px #e67e22; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(0.8); } 50% { transform: translateY(-25px) scale(1.2); } 100% { opacity: 0; transform: translateY(-50px) scale(1); } }
+        .flash-damage { background-color: #78281f !important; }
+        .shake { animation: shakeScreen 0.3s ease-in-out; }
+        @keyframes shakeScreen { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 
-        .log { background: #111; padding: 10px; height: 140px; overflow-y: auto; font-family: monospace; margin-top: 15px; border-radius: 5px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
-        .modal-content { background: #444; padding: 20px; border-radius: 10px; max-width: 500px; width: 90%; }
+        .status-banner { background: #3a3a4c; border-left: 5px solid #f1c40f; padding: 12px; margin: 10px 0; border-radius: 4px; font-size: 18px; font-weight: bold; }
+        .log { background: #15151a; padding: 10px; height: 120px; overflow-y: auto; font-family: monospace; margin-top: 15px; border-radius: 6px; border: 1px solid #333; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: #2b2b36; padding: 20px; border-radius: 10px; max-width: 500px; width: 90%; border: 2px solid #555; }
     </style>
 </head>
 <body>
@@ -51,25 +68,25 @@
 <div class="container" id="main-container">
     <h1>Brawler P2P Multiplayer</h1>
 
-    <!-- 1. MAIN MENU -->
+    <!-- MAIN MENU -->
     <div id="screen-menu" class="screen active">
         <h2>Hoofdmenu</h2>
         <p>Voer je naam in:</p>
         <input type="text" id="username" placeholder="Jouw Naam">
         <br><br>
         <button onclick="createHost()">Host Een Nieuwe Game</button>
-        <hr>
+        <hr style="border-color: #444;">
         <h3>Join een Host:</h3>
         <input type="text" id="join-code" placeholder="Voer Host Code in">
         <button onclick="joinGame()">Join Game</button>
     </div>
 
-    <!-- 2. LOBBY -->
+    <!-- LOBBY -->
     <div id="screen-lobby" class="screen">
         <h2>Lobby Code: <span id="display-code" style="color:#f1c40f;"></span></h2>
         <p>Deel deze code met je vrienden om ze te laten joinen.</p>
         <h3>Spelers in Lobby:</h3>
-        <div id="lobby-players"></div>
+        <div id="lobby-players" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
         <br>
         <div id="host-start-btn" style="display:none;">
             <button onclick="hostStartGame()">Start Game!</button>
@@ -77,7 +94,7 @@
         <p id="client-wait-msg" style="display:none;">Wachten tot de host het spel start...</p>
     </div>
 
-    <!-- 3. GAME SCHERM -->
+    <!-- GAME SCHERM -->
     <div id="screen-game" class="screen">
         <div class="stats-dashboard">
             <div>
@@ -86,8 +103,10 @@
             <div class="stat-box">❤️ HP: <span id="my-hp">5</span>/<span id="my-max-hp">5</span></div>
             <div class="stat-box">🛡️ AC (DEF): <span id="my-def">10</span></div>
             <div class="stat-box">⚔️ DMG: <span id="my-dmg">1</span></div>
-            <div class="stat-box">🎯 ATK: +<span id="my-atk">0</span></div>
+            <div class="stat-box">🎯 ATK: <span id="my-atk">+0</span></div>
         </div>
+
+        <div class="status-banner" id="status-banner">Wachten op actie...</div>
 
         <p><strong>Spelers overzicht (Klik om kaarten te bekijken):</strong></p>
         <div id="game-players-list" class="players-grid"></div>
@@ -96,7 +115,7 @@
             <div id="dice" class="dice">20</div>
         </div>
 
-        <hr>
+        <hr style="border-color: #444;">
 
         <div id="game-action-area">
             <h3>Wachten op het spel...</h3>
@@ -122,18 +141,21 @@
     let myId = "";
     
     let hostConnections = []; 
-    let gameState = { players: [], phase: 'LOBBY', cardPickQueue: [], pickerIndex: 0, turnIndex: 0, cardChoices: [], lastRoll: null, statusMessage: "" };
+    let gameState = { 
+        players: [], 
+        phase: 'LOBBY', 
+        cardPickQueue: [], 
+        pickerIndex: 0, 
+        turnIndex: 0, 
+        cardChoicesMap: {}, // Eigen unieke opties per speler
+        lastRoll: null, 
+        statusMessage: "" 
+    };
     let clientConn = null;
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-    }
-
-    function logMsg(msg) {
-        const log = document.getElementById('game-log');
-        log.innerHTML += `<div>> ${msg}</div>`;
-        log.scrollTop = log.scrollHeight;
     }
 
     function createHost() {
@@ -174,7 +196,9 @@
         if (data.type === 'PICK_CARD') {
             let pId = gameState.cardPickQueue[gameState.pickerIndex];
             let p = gameState.players.find(x => x.id === pId);
-            if (p) applyCard(p, gameState.cardChoices[data.cardIndex]);
+            if (p && gameState.cardChoicesMap[pId]) {
+                applyCard(p, gameState.cardChoicesMap[pId][data.cardIndex]);
+            }
             advanceCardPick();
         }
         if (data.type === 'ATTACK') {
@@ -212,10 +236,10 @@
                 if (data.type === 'STATE_UPDATE') {
                     let oldHp = (gameState.players.find(p => p.id === myId) || {}).hp;
                     gameState = data.state;
-                    let newHp = (gameState.players.find(p => p.id === myId) || {}).hp;
+                    let me = gameState.players.find(p => p.id === myId);
 
-                    if (oldHp !== undefined && newHp < oldHp) {
-                        triggerDamageEffect(newHp - oldHp);
+                    if (oldHp !== undefined && me && me.hp < oldHp) {
+                        triggerDamageEffect(me.hp - oldHp, false);
                     }
 
                     if (gameState.phase === 'LOBBY') {
@@ -229,40 +253,87 @@
         });
     }
 
-    function hostStartGame() {
-        startCardPickPhaseForAll();
+    // --- GAME LOGICA & KAART GENERATOR ---
+    function generateRandomCard() {
+        let rand = Math.random() * 100;
+        let rarity = 'Common';
+        if (rand > 93) rarity = 'Legendary';
+        else if (rand > 75) rarity = 'Rare';
+        else if (rand > 45) rarity = 'Uncommon';
+
+        let pool = [];
+        if (rarity === 'Common') {
+            pool = [
+                { rarity: 'Common', stat: 'hp', val: 3, label: '+3 Max HP' },
+                { rarity: 'Common', stat: 'dmg', val: 1, label: '+1 Damage' },
+                { rarity: 'Common', stat: 'def', val: 1, label: '+1 Defense (AC)' },
+                { rarity: 'Common', stat: 'atk', val: 1, label: '+1 Attack Roll' }
+            ];
+        } else if (rarity === 'Uncommon') {
+            pool = [
+                { rarity: 'Uncommon', stat: 'hp', val: 5, label: '+5 Max HP' },
+                { rarity: 'Uncommon', stat: 'dmg', val: 2, label: '+2 Damage' },
+                { rarity: 'Uncommon', stat: 'def', val: 2, label: '+2 Defense (AC)' },
+                { rarity: 'Uncommon', stat: 'atk', val: 2, label: '+2 Attack Roll' }
+            ];
+        } else if (rarity === 'Rare') {
+            pool = [
+                { rarity: 'Rare', stat: 'hp', val: 8, label: '+8 Max HP' },
+                { rarity: 'Rare', stat: 'dmg', val: 4, label: '+4 Damage' },
+                { rarity: 'Rare', stat: 'def', val: 3, label: '+3 Defense (AC)' },
+                { rarity: 'Rare', stat: 'atk', val: 4, label: '+4 Attack Roll' }
+            ];
+        } else { // Legendary
+            pool = [
+                { rarity: 'Legendary', stat: 'all', val: 3, label: '👑 Titan: +5 HP, +3 DMG, +2 AC' },
+                { rarity: 'Legendary', stat: 'dmg', val: 7, label: '⚔️ Berserker: +7 DMG!' },
+                { rarity: 'Legendary', stat: 'hp', val: 15, label: '🛡️ Colossus: +15 Max HP!' },
+                { rarity: 'Legendary', stat: 'atk', val: 6, label: '🎯 Sniper: +6 Attack Roll!' }
+            ];
+        }
+        return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    function startCardPickPhaseForAll() {
+    function generateCardsForQueue() {
+        gameState.cardChoicesMap = {};
+        gameState.cardPickQueue.forEach(pId => {
+            gameState.cardChoicesMap[pId] = [
+                generateRandomCard(),
+                generateRandomCard(),
+                generateRandomCard()
+            ];
+        });
+    }
+
+    function hostStartGame() {
         gameState.players.forEach(p => p.hp = p.maxHp);
         gameState.phase = 'CARD_PICK';
         gameState.cardPickQueue = gameState.players.map(p => p.id);
         gameState.pickerIndex = 0;
-        gameState.statusMessage = "Kies een startkaart!";
-        generateCardChoices();
+        generateCardsForQueue();
+        updateStatusBanner();
         broadcastState();
         showScreen('screen-game');
     }
 
-    function generateCardChoices() {
-        gameState.cardChoices = [
-            { rarity: 'Common', stat: 'hp', val: 3, label: '+3 HP' },
-            { rarity: 'Uncommon', stat: 'dmg', val: 2, label: '+2 DMG' },
-            { rarity: 'Rare', stat: 'def', val: 3, label: '+3 DEF (AC)' }
-        ];
-    }
-
     function applyCard(player, card) {
         player.cards.push(card);
-        if (card.stat === 'hp') { player.maxHp += card.val; player.hp += card.val; }
-        if (card.stat === 'dmg') player.dmg += card.val;
-        if (card.stat === 'def') player.def += card.val;
+        if (card.stat === 'all') {
+            player.maxHp += 5; player.hp += 5;
+            player.dmg += 3;
+            player.def += 2;
+        } else {
+            if (card.stat === 'hp') { player.maxHp += card.val; player.hp += card.val; }
+            if (card.stat === 'dmg') player.dmg += card.val;
+            if (card.stat === 'def') player.def += card.val;
+            if (card.stat === 'atk') player.atk += card.val;
+        }
     }
 
     function advanceCardPick() {
         gameState.pickerIndex++;
         if (gameState.pickerIndex < gameState.cardPickQueue.length) {
-            generateCardChoices();
+            updateStatusBanner();
         } else {
             startCombatPhase();
         }
@@ -272,7 +343,11 @@
     function startCombatPhase() {
         gameState.phase = 'TURN';
         gameState.turnIndex = 0;
-        gameState.statusMessage = "";
+        // Zorg dat de eerste speler niet dood is
+        while (gameState.players[gameState.turnIndex].hp <= 0) {
+            gameState.turnIndex = (gameState.turnIndex + 1) % gameState.players.length;
+        }
+        updateStatusBanner();
     }
 
     function performAttack(attackerId, targetId) {
@@ -282,23 +357,28 @@
         let target = gameState.players.find(p => p.id === targetId);
 
         let roll = Math.floor(Math.random() * 20) + 1;
+        let isCrit = (roll === 20);
         let total = roll + attacker.atk;
-        let hit = total >= target.def;
+        let hit = isCrit || (total >= target.def);
+
+        let damageDealt = attacker.dmg * (isCrit ? 2 : 1);
 
         if (hit) {
-            target.hp -= attacker.dmg;
+            target.hp -= damageDealt;
             if (target.hp <= 0) target.hp = 0;
-            if (target.id === myId) triggerDamageEffect(-attacker.dmg);
+            if (target.id === myId) triggerDamageEffect(-damageDealt, isCrit);
         }
 
         gameState.lastRoll = {
             attacker: attacker.name,
             targetId: target.id,
             roll: roll,
+            isCrit: isCrit,
             hit: hit,
-            dmg: attacker.dmg
+            dmg: damageDealt
         };
 
+        // Check einde ronde
         let alive = gameState.players.filter(p => p.hp > 0);
         if (alive.length <= 1) {
             let winner = alive[0];
@@ -306,38 +386,57 @@
                 winner.wins++;
                 if (winner.wins >= 5) {
                     gameState.phase = 'GAME_OVER';
-                    gameState.statusMessage = `🎉 ${winner.name} heeft het spel gewonnen met 5 wins! 🎉`;
+                    gameState.statusMessage = `🎉 ${winner.name} HEEFT HET SPEL GEWONNEN! 🎉`;
                 } else {
-                    // Ronde afgelopen: alleen verliezers kiezen kaarten
+                    // Ronde afgelopen: Reset HP & start kaartfase voor verliezers
+                    gameState.players.forEach(p => p.hp = p.maxHp);
                     gameState.phase = 'CARD_PICK';
                     gameState.cardPickQueue = gameState.players.filter(p => p.id !== winner.id).map(p => p.id);
                     gameState.pickerIndex = 0;
-                    gameState.statusMessage = `Ronde afgelopen! ${winner.name} wint deze ronde. Verliezers kiezen een kaart!`;
+                    gameState.statusMessage = `${winner.name} wint de ronde! Verliezers kiezen een kaart.`;
+                    
                     if (gameState.cardPickQueue.length > 0) {
-                        generateCardChoices();
+                        generateCardsForQueue();
                     } else {
                         startCombatPhase();
                     }
                 }
             }
         } else {
+            // Volgende levende speler
             do {
                 gameState.turnIndex = (gameState.turnIndex + 1) % gameState.players.length;
             } while (gameState.players[gameState.turnIndex].hp <= 0);
         }
 
+        updateStatusBanner();
         broadcastState();
     }
 
-    function triggerDamageEffect(dmgValue) {
+    function updateStatusBanner() {
+        if (gameState.phase === 'CARD_PICK') {
+            let activePickerId = gameState.cardPickQueue[gameState.pickerIndex];
+            let picker = gameState.players.find(p => p.id === activePickerId);
+            gameState.statusMessage = `Kaartkeuze: ${picker ? picker.name : 'Iemand'} kiest nu een kaart...`;
+        } else if (gameState.phase === 'TURN') {
+            let activeP = gameState.players[gameState.turnIndex];
+            gameState.statusMessage = `Gevecht: Het is de beurt van ${activeP ? activeP.name : 'iemand'}!`;
+        }
+    }
+
+    function triggerDamageEffect(dmgValue, isCrit) {
         document.body.classList.add('flash-damage');
-        setTimeout(() => document.body.classList.remove('flash-damage'), 200);
+        if (isCrit) document.body.classList.add('shake');
+        setTimeout(() => {
+            document.body.classList.remove('flash-damage');
+            document.body.classList.remove('shake');
+        }, 300);
 
         const pop = document.createElement('div');
-        pop.className = 'damage-pop';
-        pop.innerText = `${dmgValue}`;
+        pop.className = `damage-pop ${isCrit ? 'crit-pop' : ''}`;
+        pop.innerText = isCrit ? `CRIT! ${dmgValue}` : `${dmgValue}`;
         pop.style.left = '50%';
-        pop.style.top = '40%';
+        pop.style.top = '35%';
         document.getElementById('main-container').appendChild(pop);
         setTimeout(() => pop.remove(), 1200);
     }
@@ -351,15 +450,18 @@
             document.getElementById('my-max-hp').innerText = me.maxHp;
             document.getElementById('my-def').innerText = me.def;
             document.getElementById('my-dmg').innerText = me.dmg;
-            document.getElementById('my-atk').innerText = me.atk;
+            document.getElementById('my-atk').innerText = me.atk >= 0 ? `+${me.atk}` : me.atk;
         }
 
-        let activePlayer = gameState.players[gameState.turnIndex];
+        document.getElementById('status-banner').innerText = gameState.statusMessage || "Spel bezig...";
+
+        let activeTurnPlayer = gameState.players[gameState.turnIndex];
         document.getElementById('game-players-list').innerHTML = gameState.players.map(p => `
-            <div class="player-card ${p.hp <= 0 ? 'dead' : ''} ${gameState.phase === 'TURN' && activePlayer && activePlayer.id === p.id ? 'active-turn' : ''}" onclick="viewPlayerCards('${p.id}')">
+            <div class="player-card ${p.hp <= 0 ? 'dead' : ''} ${gameState.phase === 'TURN' && activeTurnPlayer && activeTurnPlayer.id === p.id ? 'active-turn' : ''}" onclick="viewPlayerCards('${p.id}')">
+                <span class="turn-badge">Aan de beurt</span>
                 <strong>${p.name}</strong><br>
                 ❤️ HP: ${p.hp}/${p.maxHp}<br>
-                🛡️ AC (DEF): ${p.def}
+                🛡️ AC: ${p.def}
             </div>
         `).join('');
 
@@ -371,24 +473,27 @@
 
         if (gameState.phase === 'CARD_PICK') {
             let activePickerId = gameState.cardPickQueue[gameState.pickerIndex];
-            let activePicker = gameState.players.find(p => p.id === activePickerId);
+            let choices = gameState.cardChoicesMap[activePickerId] || [];
             
             if (activePickerId === myId) {
-                let html = `<h3>${gameState.statusMessage || ''} Kies 1 kaart:</h3><div class="card-selection">`;
-                gameState.cardChoices.forEach((c, idx) => {
+                let html = `<h3>Kies 1 kaart om je stats te upgraden:</h3><div class="card-selection">`;
+                choices.forEach((c, idx) => {
                     html += `<div class="game-card rarity-${c.rarity}" onclick="selectCard(${idx})">
-                                <strong>${c.rarity}</strong><br>${c.label}
+                                ${c.rarity === 'Legendary' ? '<span class="legendary-tag">LEGENDARY</span>' : ''}
+                                <strong>${c.rarity}</strong><br><br>
+                                <span style="font-size:18px; font-weight:bold;">${c.label}</span>
                              </div>`;
                 });
                 html += `</div>`;
                 actionArea.innerHTML = html;
             } else {
-                actionArea.innerHTML = `<h3>${gameState.statusMessage || ''}<br>Wachten tot <strong>${activePicker ? activePicker.name : 'iemand'}</strong> een kaart kiest...</h3>`;
+                let picker = gameState.players.find(p => p.id === activePickerId);
+                actionArea.innerHTML = `<h3>Wachten tot <strong>${picker ? picker.name : 'iemand'}</strong> een kaart kiest...</h3>`;
             }
         } else if (gameState.phase === 'TURN') {
-            if (activePlayer.id === myId) {
+            if (activeTurnPlayer.id === myId) {
                 if (me.hp <= 0) {
-                    actionArea.innerHTML = `<h3>Je bent dood voor deze ronde! Wacht tot de ronde voorbij is.</h3>`;
+                    actionArea.innerHTML = `<h3>Je bent dood deze ronde! Wacht tot het einde van de ronde.</h3>`;
                 } else {
                     let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3>`;
                     gameState.players.forEach(p => {
@@ -399,10 +504,10 @@
                     actionArea.innerHTML = html;
                 }
             } else {
-                actionArea.innerHTML = `<h3>Het is de beurt van <strong>${activePlayer.name}</strong>...</h3>`;
+                actionArea.innerHTML = `<h3>Het is de beurt van <strong>${activeTurnPlayer.name}</strong>. Wacht op hun actie...</h3>`;
             }
         } else if (gameState.phase === 'GAME_OVER') {
-            actionArea.innerHTML = `<h2>${gameState.statusMessage}</h2>`;
+            actionArea.innerHTML = `<h2 style="color:#f1c40f; text-align:center;">${gameState.statusMessage}</h2>`;
         }
     }
 
@@ -412,18 +517,24 @@
 
         area.style.display = 'block';
         dice.classList.add('rolling');
+        dice.classList.remove('crit');
 
         setTimeout(() => {
             dice.classList.remove('rolling');
             dice.innerText = lastRoll.roll;
-        }, 500);
+            if (lastRoll.isCrit) {
+                dice.classList.add('crit');
+            }
+        }, 400);
     }
 
     function selectCard(idx) {
         if (isHost) {
             let pId = gameState.cardPickQueue[gameState.pickerIndex];
             let p = gameState.players.find(x => x.id === pId);
-            if (p) applyCard(p, gameState.cardChoices[idx]);
+            if (p && gameState.cardChoicesMap[pId]) {
+                applyCard(p, gameState.cardChoicesMap[pId][idx]);
+            }
             advanceCardPick();
         } else {
             clientConn.send({ type: 'PICK_CARD', cardIndex: idx });
@@ -449,7 +560,7 @@
             container.innerHTML = "<p>Deze speler heeft nog geen kaarten.</p>";
         } else {
             container.innerHTML = player.cards.map(c => `
-                <div style="background:#222; padding:8px; margin:5px 0; border-radius:5px;">
+                <div style="background:#1e1e24; padding:10px; margin:6px 0; border-radius:6px; border-left:4px solid ${c.rarity === 'Legendary' ? '#f1c40f' : '#3498db'};">
                     <strong>${c.rarity}</strong>: ${c.label}
                 </div>
             `).join('');
