@@ -3,309 +3,354 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaarten & Dobbelstenen Brawler</title>
+    <title>Brawler Online (P2P)</title>
+    <!-- PeerJS bibliotheek voor directe P2P verbindingen tussen spelers -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #2b2b2b; color: #fff; margin: 0; padding: 20px; }
         h1, h2, h3 { color: #f1c40f; }
-        .container { display: flex; flex-direction: column; gap: 20px; max-width: 1000px; margin: 0 auto; }
-        .players { display: flex; gap: 20px; justify-content: space-between; }
-        .player-card { background: #333; padding: 15px; border-radius: 8px; flex: 1; border: 2px solid #555; }
-        .player-card.active { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; }
-        .player-card.dead { opacity: 0.5; }
-        .controls { background: #444; padding: 20px; border-radius: 8px; text-align: center; }
-        .log { background: #111; padding: 15px; border-radius: 8px; height: 200px; overflow-y: auto; font-family: monospace; }
-        button { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 5px; }
+        .container { max-width: 900px; margin: 0 auto; background: #333; padding: 20px; border-radius: 10px; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        input, button { padding: 10px 15px; font-size: 16px; margin: 5px; border-radius: 5px; border: none; }
+        button { background: #e74c3c; color: white; cursor: pointer; }
         button:hover { background: #c0392b; }
-        button:disabled { background: #7f8c8d; cursor: not-allowed; }
-        .card-selection { display: flex; gap: 15px; justify-content: center; margin-top: 10px; }
-        .game-card { background: #ecf0f1; color: #2c3e50; padding: 15px; border-radius: 8px; cursor: pointer; flex: 1; text-align: left; border: 4px solid #bdc3c7; }
-        .game-card:hover { transform: scale(1.05); }
+        .player-tag { display: inline-block; background: #444; padding: 6px 12px; margin: 5px; border-radius: 4px; cursor: pointer; }
+        .player-tag:hover { background: #f1c40f; color: #000; }
+        .card-selection { display: flex; gap: 15px; margin-top: 15px; }
+        .game-card { background: #ecf0f1; color: #2c3e50; padding: 15px; border-radius: 8px; cursor: pointer; flex: 1; border: 4px solid #bdc3c7; }
         .rarity-Common { border-color: #95a5a6; }
         .rarity-Uncommon { border-color: #2ecc71; }
         .rarity-Rare { border-color: #3498db; }
         .rarity-Legendary { border-color: #f1c40f; }
-        .variant-Blessed { box-shadow: 0 0 10px #f1c40f; }
-        .variant-Cursed { box-shadow: 0 0 10px #8e44ad; }
+        .log { background: #111; padding: 10px; height: 120px; overflow-y: auto; font-family: monospace; margin-top: 15px; border-radius: 5px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+        .modal-content { background: #444; padding: 20px; border-radius: 10px; max-width: 500px; width: 90%; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Brawler Game</h1>
-    
-    <div class="players" id="players-container">
-        <!-- Spelers worden hier via JS gegenereerd -->
+    <h1>Brawler P2P Multiplayer</h1>
+
+    <!-- 1. MAIN MENU -->
+    <div id="screen-menu" class="screen active">
+        <h2>Hoofdmenu</h2>
+        <p>Voer je naam in:</p>
+        <input type="text" id="username" placeholder="Jouw Naam">
+        <br><br>
+        <button onclick="createHost()">Host Een Nieuwe Game</button>
+        <hr>
+        <h3>Join een Host:</h3>
+        <input type="text" id="join-code" placeholder="Voer Host Code in">
+        <button onclick="joinGame()">Join Game</button>
     </div>
 
-    <div class="controls" id="controls">
-        <h2 id="phase-title">Start Spel</h2>
-        <div id="action-area">
-            <button onclick="startGame()">Start Spel (Kies startkaarten)</button>
+    <!-- 2. LOBBY -->
+    <div id="screen-lobby" class="screen">
+        <h2>Lobby Code: <span id="display-code" style="color:#f1c40f;"></span></h2>
+        <p>Deel deze code met je vrienden om ze te laten joinen.</p>
+        <h3>Spelers in Lobby:</h3>
+        <div id="lobby-players"></div>
+        <br>
+        <div id="host-start-btn" style="display:none;">
+            <button onclick="hostStartGame()">Start Game!</button>
         </div>
+        <p id="client-wait-msg" style="display:none;">Wachten tot de host het spel start...</p>
     </div>
 
-    <div class="log" id="log"></div>
+    <!-- 3. GAME SCHERM -->
+    <div id="screen-game" class="screen">
+        <div style="display:flex; justify-content:space-between;">
+            <h2>Slagveld</h2>
+            <div><strong>Jouw Wins:</strong> <span id="my-wins">0</span>/5</div>
+        </div>
+
+        <p><strong>Spelers (Klik op een naam om hun kaarten te bekijken):</strong></p>
+        <div id="game-players-list"></div>
+        <hr>
+
+        <div id="game-action-area">
+            <h3>Wachten op het spel...</h3>
+        </div>
+
+        <div class="log" id="game-log"></div>
+    </div>
+</div>
+
+<!-- MODAL VOOR KAARTEN BEKIJKEN -->
+<div id="player-modal" class="modal">
+    <div class="modal-content">
+        <h3 id="modal-player-name">Kaarten</h3>
+        <div id="modal-player-cards"></div>
+        <br>
+        <button onclick="closeModal()">Sluiten</button>
+    </div>
 </div>
 
 <script>
-    const BASE_STATS = { dmg: 1, atk: 0, hp: 5, def: 10 };
-    let players = [
-        { id: 0, name: "Speler 1", wins: 0, cards: [], currentHp: 0, alive: true, initiative: 0 },
-        { id: 1, name: "Speler 2", wins: 0, cards: [], currentHp: 0, alive: true, initiative: 0 },
-        { id: 2, name: "Speler 3", wins: 0, cards: [], currentHp: 0, alive: true, initiative: 0 }
-    ];
-    let currentPlayerIndex = 0; // Index in initiative order
-    let initiativeOrder = [];
-    let state = "SETUP"; // SETUP, CARD_PICK, ROUND_START, TURN, END_ROUND, END_GAME
+    let peer = null;
+    let isHost = false;
+    let myName = "";
+    let myId = "";
     
-    let cardPickQueue = []; // Houdt bij wie kaarten moet kiezen
-    let currentChoices = [];
+    // Host data
+    let hostConnections = []; 
+    let gameState = { players: [], phase: 'LOBBY', pickerIndex: 0, turnIndex: 0, cardChoices: [] };
+
+    // Client data
+    let clientConn = null;
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
 
     function logMsg(msg) {
-        const log = document.getElementById('log');
+        const log = document.getElementById('game-log');
         log.innerHTML += `<div>> ${msg}</div>`;
         log.scrollTop = log.scrollHeight;
     }
 
-    function rollD20() { return Math.floor(Math.random() * 20) + 1; }
+    // --- HOST LOGICA ---
+    function createHost() {
+        myName = document.getElementById('username').value.trim();
+        if (!myName) return alert("Vul een naam in!");
 
-    function getStats(player) {
-        let stats = { ...BASE_STATS };
-        // Simpele versie van buffs toepassen (flat buffs voor deze demo)
-        player.cards.forEach(card => {
-            for (let stat in card.buffs) {
-                stats[stat] += card.buffs[stat];
-            }
-            for (let stat in card.debuffs) {
-                stats[stat] += card.debuffs[stat];
-            }
-        });
-        
-        // Limits
-        stats.dmg = Math.max(0, stats.dmg);
-        stats.hp = Math.max(0, Math.floor(stats.hp));
-        stats.def = Math.max(0, stats.def);
-        // atk mag negatief zijn
-        return stats;
-    }
+        // Genereer een willekeurige 5-letterige code
+        let code = Math.random().toString(36).substring(2, 7).toUpperCase();
+        peer = new Peer(code);
 
-    function updateUI() {
-        const container = document.getElementById('players-container');
-        container.innerHTML = '';
-        players.forEach(p => {
-            const stats = getStats(p);
-            let isActive = (state === "TURN" && initiativeOrder.length > 0 && initiativeOrder[currentPlayerIndex].id === p.id);
-            container.innerHTML += `
-                <div class="player-card ${isActive ? 'active' : ''} ${!p.alive ? 'dead' : ''}">
-                    <h3>${p.name} (Wins: ${p.wins}/5)</h3>
-                    <p><strong>HP:</strong> ${p.currentHp} / ${stats.hp}</p>
-                    <p>DMG: ${stats.dmg} | ATK: ${stats.atk > 0 ? '+'+stats.atk : stats.atk} | DEF: ${stats.def}</p>
-                    <p><em>Kaarten: ${p.cards.length}</em></p>
-                </div>
-            `;
-        });
-    }
-
-    // --- KAARTEN GENERATOR ---
-    function generateCard() {
-        const randRarity = Math.random() * 100;
-        let rarity = 'Common';
-        if (randRarity > 95) rarity = 'Legendary';
-        else if (randRarity > 80) rarity = 'Rare';
-        else if (randRarity > 50) rarity = 'Uncommon';
-
-        const randVariant = Math.random() * 100;
-        let variant = 'None';
-        if (rarity !== 'Legendary' && randVariant < 10) {
-            variant = randVariant < 5 ? 'Blessed' : 'Cursed';
-        }
-
-        let card = { rarity, variant, buffs: {}, debuffs: {} };
-        const statNames = ['dmg', 'atk', 'hp', 'def'];
-        let chosenStat = statNames[Math.floor(Math.random() * statNames.length)];
-
-        // Basis buffs
-        if (rarity === 'Common') card.buffs[chosenStat] = (chosenStat === 'hp') ? 3 : 1;
-        if (rarity === 'Uncommon') {
-            card.buffs[chosenStat] = (chosenStat === 'hp') ? 5 : 2;
-            let debuffStat = statNames[Math.floor(Math.random() * statNames.length)];
-            card.debuffs[debuffStat] = -Math.ceil(card.buffs[chosenStat] / 2);
-        }
-        if (rarity === 'Rare') {
-            card.buffs[chosenStat] = (chosenStat === 'hp') ? 8 : 5;
-            let debuffStat = statNames[Math.floor(Math.random() * statNames.length)];
-            card.debuffs[debuffStat] = -Math.ceil(card.buffs[chosenStat] / 2);
-        }
-        if (rarity === 'Legendary') {
-            card.buffs[chosenStat] = (chosenStat === 'hp') ? 15 : 8;
-            let debuffStat = statNames[Math.floor(Math.random() * statNames.length)];
-            card.debuffs[debuffStat] = -Math.ceil(card.buffs[chosenStat] / 2);
-        }
-
-        // Variants toepassen
-        if (variant === 'Blessed') {
-            for (let s in card.buffs) card.buffs[s] = Math.ceil(card.buffs[s] * 1.5);
-        }
-        if (variant === 'Cursed') {
-            for (let s in card.buffs) card.buffs[s] *= 2;
-            for (let s in card.debuffs) card.debuffs[s] *= 2;
-            if (Object.keys(card.debuffs).length === 0) {
-                let dStat = statNames[Math.floor(Math.random() * statNames.length)];
-                card.debuffs[dStat] = -2;
-            }
-        }
-
-        return card;
-    }
-
-    // --- GAME FLOW ---
-    function startGame() {
-        logMsg("Spel gestart! Iedereen mag een startkaart kiezen.");
-        cardPickQueue = players.map(p => p.id);
-        startCardPicking();
-    }
-
-    function startCardPicking() {
-        state = "CARD_PICK";
-        if (cardPickQueue.length === 0) {
-            startRound();
-            return;
-        }
-        let pId = cardPickQueue[0];
-        let pName = players.find(p => p.id === pId).name;
-        
-        currentChoices = [generateCard(), generateCard(), generateCard()];
-        
-        document.getElementById('phase-title').innerText = `${pName} - Kies een kaart`;
-        
-        let html = `<div class="card-selection">`;
-        currentChoices.forEach((c, idx) => {
-            let bText = Object.entries(c.buffs).map(([k, v]) => `+${v} ${k}`).join(', ');
-            let dText = Object.entries(c.debuffs).map(([k, v]) => `${v} ${k}`).join(', ');
-            html += `<div class="game-card rarity-${c.rarity} variant-${c.variant}" onclick="pickCard(${idx})">
-                        <strong>${c.rarity}</strong> ${c.variant !== 'None' ? `(${c.variant})` : ''}<br>
-                        <span style="color:green">${bText}</span><br>
-                        <span style="color:red">${dText}</span>
-                     </div>`;
-        });
-        html += `</div>`;
-        document.getElementById('action-area').innerHTML = html;
-        updateUI();
-    }
-
-    window.pickCard = function(index) {
-        let pId = cardPickQueue.shift();
-        let player = players.find(p => p.id === pId);
-        player.cards.push(currentChoices[index]);
-        logMsg(`${player.name} heeft een ${currentChoices[index].rarity} kaart gekozen.`);
-        startCardPicking(); // Volgende in de rij
-    }
-
-    function startRound() {
-        state = "ROUND_START";
-        logMsg("--- NIEUWE RONDE ---");
-        
-        // Restore HP
-        players.forEach(p => {
-            let stats = getStats(p);
-            p.currentHp = stats.hp;
-            p.alive = p.currentHp > 0;
+        peer.on('open', (id) => {
+            myId = id;
+            isHost = true;
+            gameState.players.push({ id: myId, name: myName, hp: 5, maxHp: 5, wins: 0, cards: [], dmg: 1, atk: 0, def: 10 });
             
-            // Roll initiative, reroll ties logic is simplified here to avoid infinite loops, adding minor decimals to tiebreak
-            p.initiative = rollD20() + (Math.random() * 0.1); 
+            document.getElementById('display-code').innerText = myId;
+            document.getElementById('host-start-btn').style.display = 'block';
+            updateLobbyUI();
+            showScreen('screen-lobby');
         });
 
-        initiativeOrder = [...players].filter(p => p.alive).sort((a, b) => b.initiative - a.initiative);
-        logMsg("Initiative gerold: " + initiativeOrder.map(p => p.name).join(' ➔ '));
-        
-        currentPlayerIndex = 0;
-        playTurn();
-    }
+        // Nieuwe speler maakt verbinding met Host
+        peer.on('connection', (conn) => {
+            hostConnections.push(conn);
 
-    function playTurn() {
-        state = "TURN";
-        if (checkRoundEnd()) return;
+            conn.on('data', (data) => {
+                handleClientMessage(conn, data);
+            });
 
-        let activePlayer = initiativeOrder[currentPlayerIndex];
-        if (!activePlayer.alive) {
-            nextTurn();
-            return;
-        }
-
-        document.getElementById('phase-title').innerText = `Beurt van ${activePlayer.name}`;
-        
-        let html = `<p>Kies wie je wilt aanvallen:</p>`;
-        players.forEach(target => {
-            if (target.id !== activePlayer.id && target.alive) {
-                html += `<button onclick="attack(${activePlayer.id}, ${target.id})">Val ${target.name} aan</button>`;
-            }
+            conn.on('close', () => {
+                gameState.players = gameState.players.filter(p => p.id !== conn.peer);
+                broadcastState();
+                updateLobbyUI();
+            });
         });
-        document.getElementById('action-area').innerHTML = html;
-        updateUI();
     }
 
-    window.attack = function(attackerId, targetId) {
-        let attacker = players.find(p => p.id === attackerId);
-        let target = players.find(p => p.id === targetId);
-        
-        let aStats = getStats(attacker);
-        let tStats = getStats(target);
-        
-        let roll = rollD20();
-        let attackTotal = roll + aStats.atk;
-        
-        logMsg(`${attacker.name} rolt ${roll} + ${aStats.atk} = ${attackTotal} tegen de DEF (${tStats.def}) van ${target.name}.`);
-        
-        if (attackTotal >= tStats.def) {
-            target.currentHp -= aStats.dmg;
-            logMsg(`-> RAAK! ${target.name} verliest ${aStats.dmg} HP.`);
-            if (target.currentHp <= 0) {
-                target.alive = false;
-                logMsg(`💀 ${target.name} is dood voor deze ronde!`);
-            }
-        } else {
-            logMsg(`-> MISS!`);
+    function handleClientMessage(conn, data) {
+        if (data.type === 'JOIN') {
+            gameState.players.push({ id: conn.peer, name: data.name, hp: 5, maxHp: 5, wins: 0, cards: [], dmg: 1, atk: 0, def: 10 });
+            updateLobbyUI();
+            broadcastState();
         }
-        
-        nextTurn();
-    }
-
-    function nextTurn() {
-        currentPlayerIndex++;
-        if (currentPlayerIndex >= initiativeOrder.length) {
-            currentPlayerIndex = 0; // Terug naar het begin van de beurten
+        if (data.type === 'PICK_CARD') {
+            let p = gameState.players.find(x => x.id === conn.peer);
+            applyCard(p, gameState.cardChoices[data.cardIndex]);
+            advanceCardPick();
         }
-        playTurn();
+        if (data.type === 'ATTACK') {
+            performAttack(conn.peer, data.targetId);
+        }
     }
 
-    function checkRoundEnd() {
-        let alivePlayers = players.filter(p => p.alive);
-        if (alivePlayers.length <= 1) {
-            let winner = alivePlayers[0];
-            if(winner) {
-                winner.wins++;
-                logMsg(`🏆 ${winner.name} WINT de ronde!`);
-                
-                if (winner.wins >= 5) {
-                    logMsg(`🎉🎉 ${winner.name} HEEFT HET SPEL GEWONNEN! 🎉🎉`);
-                    document.getElementById('action-area').innerHTML = `<button onclick="location.reload()">Speel Opnieuw</button>`;
-                    return true;
+    function updateLobbyUI() {
+        document.getElementById('lobby-players').innerHTML = gameState.players.map(p => `<span class="player-tag">${p.name}</span>`).join('');
+    }
+
+    function broadcastState() {
+        hostConnections.forEach(conn => conn.send({ type: 'STATE_UPDATE', state: gameState }));
+        renderGameUI(); // Update host eigen scherm
+    }
+
+    // --- CLIENT LOGICA ---
+    function joinGame() {
+        myName = document.getElementById('username').value.trim();
+        let hostCode = document.getElementById('join-code').value.trim().toUpperCase();
+        if (!myName || !hostCode) return alert("Vul je naam en de host-code in!");
+
+        peer = new Peer();
+        peer.on('open', (id) => {
+            myId = id;
+            clientConn = peer.connect(hostCode);
+
+            clientConn.on('open', () => {
+                clientConn.send({ type: 'JOIN', name: myName });
+                document.getElementById('display-code').innerText = hostCode;
+                document.getElementById('client-wait-msg').style.display = 'block';
+                showScreen('screen-lobby');
+            });
+
+            clientConn.on('data', (data) => {
+                if (data.type === 'STATE_UPDATE') {
+                    gameState = data.state;
+                    if (gameState.phase === 'LOBBY') {
+                        updateLobbyUI();
+                    } else {
+                        showScreen('screen-game');
+                        renderGameUI();
+                    }
                 }
-                
-                // Verliezers krijgen kaarten
-                cardPickQueue = players.filter(p => p.id !== winner.id).map(p => p.id);
-            } else {
-                logMsg(`Gelijkspel, iedereen is dood!`);
-                cardPickQueue = players.map(p => p.id);
-            }
-            startCardPicking(); // Start de pick-fase, die leidt naar de volgende ronde
-            return true;
-        }
-        return false;
+            });
+        });
     }
 
-    updateUI();
-</script>
+    // --- GAME ENGINE (Draait op de Host) ---
+    function hostStartGame() {
+        gameState.phase = 'CARD_PICK';
+        gameState.pickerIndex = 0;
+        generateCardChoices();
+        broadcastState();
+        showScreen('screen-game');
+    }
 
+    function generateCardChoices() {
+        gameState.cardChoices = [
+            { rarity: 'Common', stat: 'hp', val: 3, label: '+3 HP' },
+            { rarity: 'Uncommon', stat: 'dmg', val: 2, label: '+2 DMG' },
+            { rarity: 'Rare', stat: 'def', val: 3, label: '+3 DEF' }
+        ];
+    }
+
+    function applyCard(player, card) {
+        player.cards.push(card);
+        if (card.stat === 'hp') { player.maxHp += card.val; player.hp += card.val; }
+        if (card.stat === 'dmg') player.dmg += card.val;
+        if (card.stat === 'def') player.def += card.val;
+    }
+
+    function advanceCardPick() {
+        gameState.pickerIndex++;
+        if (gameState.pickerIndex < gameState.players.length) {
+            generateCardChoices();
+        } else {
+            // Iedereen heeft gekozen, start gevecht
+            gameState.phase = 'TURN';
+            gameState.turnIndex = 0;
+        }
+        broadcastState();
+    }
+
+    function performAttack(attackerId, targetId) {
+        let attacker = gameState.players.find(p => p.id === attackerId);
+        let target = gameState.players.find(p => p.id === targetId);
+
+        let roll = Math.floor(Math.random() * 20) + 1;
+        let total = roll + attacker.atk;
+
+        if (total >= target.def) {
+            target.hp -= attacker.dmg;
+            if (target.hp <= 0) target.hp = 0;
+        }
+
+        // Volgende beurt
+        do {
+            gameState.turnIndex = (gameState.turnIndex + 1) % gameState.players.length;
+        } while (gameState.players[gameState.turnIndex].hp <= 0 && gameState.players.filter(p => p.hp > 0).length > 1);
+
+        broadcastState();
+    }
+
+    // --- RENDEREN VAN HET SCHERM ---
+    function renderGameUI() {
+        // Spelerslijst bovenin
+        document.getElementById('game-players-list').innerHTML = gameState.players.map(p => `
+            <span class="player-tag" onclick="viewPlayerCards('${p.id}')">
+                ${p.name} ${p.hp <= 0 ? '💀 (DOOD)' : `(HP: ${p.hp}/${p.maxHp})`}
+            </span>
+        `).join('');
+
+        const me = gameState.players.find(p => p.id === myId);
+        if (me) document.getElementById('my-wins').innerText = me.wins;
+
+        const actionArea = document.getElementById('game-action-area');
+
+        // FASE: KAART KIEZEN
+        if (gameState.phase === 'CARD_PICK') {
+            let activePicker = gameState.players[gameState.pickerIndex];
+            if (activePicker.id === myId) {
+                let html = `<h3>Jij bent aan de beurt! Kies 1 kaart:</h3><div class="card-selection">`;
+                gameState.cardChoices.forEach((c, idx) => {
+                    html += `<div class="game-card rarity-${c.rarity}" onclick="selectCard(${idx})">
+                                <strong>${c.rarity}</strong><br>${c.label}
+                             </div>`;
+                });
+                html += `</div>`;
+                actionArea.innerHTML = html;
+            } else {
+                actionArea.innerHTML = `<h3>Wachten tot <strong>${activePicker.name}</strong> een kaart kiest...</h3>`;
+            }
+        }
+        // FASE: AANVALLEN
+        else if (gameState.phase === 'TURN') {
+            let activePlayer = gameState.players[gameState.turnIndex];
+            if (activePlayer.id === myId) {
+                if (me.hp <= 0) {
+                    actionArea.innerHTML = `<h3>Je bent uitgeschakeld voor deze ronde!</h3>`;
+                } else {
+                    let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3>`;
+                    gameState.players.forEach(p => {
+                        if (p.id !== myId && p.hp > 0) {
+                            html += `<button onclick="sendAttack('${p.id}')">Val ${p.name} aan</button>`;
+                        }
+                    });
+                    actionArea.innerHTML = html;
+                }
+            } else {
+                actionArea.innerHTML = `<h3>Het is de beurt van <strong>${activePlayer.name}</strong>...</h3>`;
+            }
+        }
+    }
+
+    function selectCard(idx) {
+        if (isHost) {
+            applyCard(gameState.players[0], gameState.cardChoices[idx]);
+            advanceCardPick();
+        } else {
+            clientConn.send({ type: 'PICK_CARD', cardIndex: idx });
+        }
+    }
+
+    function sendAttack(targetId) {
+        if (isHost) {
+            performAttack(myId, targetId);
+        } else {
+            clientConn.send({ type: 'ATTACK', targetId: targetId });
+        }
+    }
+
+    function viewPlayerCards(playerId) {
+        const player = gameState.players.find(p => p.id === playerId);
+        if (!player) return;
+
+        document.getElementById('modal-player-name').innerText = `Kaarten van ${player.name}`;
+        const container = document.getElementById('modal-player-cards');
+
+        if (player.cards.length === 0) {
+            container.innerHTML = "<p>Deze speler heeft nog geen kaarten.</p>";
+        } else {
+            container.innerHTML = player.cards.map(c => `
+                <div style="background:#222; padding:8px; margin:5px 0; border-radius:5px;">
+                    <strong>${c.rarity}</strong>: ${c.label}
+                </div>
+            `).join('');
+        }
+        document.getElementById('player-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('player-modal').style.display = 'none';
+    }
+</script>
 </body>
 </html>
