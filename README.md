@@ -5,4 +5,4 @@ Teun Spelten (teletubbie toast): Product
 
 Luuk Munnik (luukmunnik1610-crypto): Marketing
 
-Dogu Senyurt (...
+Dogu Senyurt (misteregg211-tech): Kwaliteit
