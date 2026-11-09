@@ -19,12 +19,10 @@
         .btn-kick { background: #95a5a6; padding: 4px 8px; font-size: 12px; margin-left: 10px; }
         .btn-kick:hover { background: #7f8c8d; }
         
-        /* Uitgebreide Settings Box */
         .settings-box { background: #1e1e24; border: 2px solid #f1c40f; padding: 15px; border-radius: 8px; margin: 15px 0; }
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 10px; }
         .settings-grid label { font-size: 14px; font-weight: bold; color: #f1c40f; }
 
-        /* Dashboard & Player Grid */
         .stats-dashboard { background: #1e1e24; border: 2px solid #f1c40f; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .stat-box { background: #3a3a4c; padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #555; }
         
@@ -35,7 +33,6 @@
         .player-card.active-turn { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; animation: turnPulse 1.5s infinite alternate; }
         @keyframes turnPulse { 0% { box-shadow: 0 0 8px #e74c3c; } 100% { box-shadow: 0 0 20px #e74c3c, 0 0 30px #f39c12; } }
         
-        /* Kill / Death Animatie */
         .player-card.just-killed { animation: killAnimation 1s forwards ease-in-out; }
         @keyframes killAnimation {
             0% { transform: scale(1); border-color: #ff4757; background: #ff4757; }
@@ -48,15 +45,14 @@
         .turn-badge { display: none; background: #e74c3c; color: #fff; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; position: absolute; top: -10px; right: 10px; text-transform: uppercase; }
         .active-turn .turn-badge { display: block; }
 
-        /* Round Banner Animations */
         .round-banner { display: none; padding: 15px; border-radius: 8px; text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 15px; animation: popIn 0.4s ease; }
         .round-banner.win { background: #27ae60; color: #fff; border: 2px solid #2ecc71; }
         .round-banner.lose { background: #c0392b; color: #fff; border: 2px solid #e74c3c; }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* Card Selection */
+        /* Kaarten Styling met Variants */
         .card-selection { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
-        .game-card { background: #ecf0f1; color: #2c3e50; padding: 15px; border-radius: 10px; cursor: pointer; flex: 1; min-width: 180px; border: 4px solid #bdc3c7; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+        .game-card { background: #ecf0f1; color: #2c3e50; padding: 15px; border-radius: 10px; cursor: pointer; flex: 1; min-width: 200px; border: 4px solid #bdc3c7; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
         .game-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.4); }
         .rarity-Common { border-color: #95a5a6; }
         .rarity-Uncommon { border-color: #2ecc71; }
@@ -64,14 +60,18 @@
         .rarity-Legendary { border-color: #f1c40f; background: linear-gradient(135deg, #fff9e6 0%, #ffeaa7 100%); animation: legendaryGlow 2s infinite alternate; }
         @keyframes legendaryGlow { 0% { box-shadow: 0 0 10px #f1c40f; } 100% { box-shadow: 0 0 25px #f39c12; } }
 
-        /* Dice & Damage Animation */
+        .variant-Blessed { box-shadow: 0 0 15px #f1c40f !important; border-style: double !important; }
+        .variant-Cursed { box-shadow: 0 0 15px #8e44ad !important; border-color: #8e44ad !important; }
+        .variant-tag { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; position: absolute; top: 5px; right: 5px; text-transform: uppercase; }
+        .tag-Blessed { background: #f1c40f; color: #000; }
+        .tag-Cursed { background: #8e44ad; color: #fff; }
+
         .dice-container { text-align: center; margin: 20px 0; }
         .dice { display: inline-block; width: 70px; height: 70px; background: #e74c3c; color: white; font-size: 32px; font-weight: bold; line-height: 70px; border-radius: 14px; border: 4px solid #fff; box-shadow: 0 6px 12px rgba(0,0,0,0.5); }
         .dice.crit { background: #f1c40f; color: #000; border-color: #f39c12; }
         .rolling { animation: spin 0.12s infinite linear; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Damage Pop Boven Speler */
         .target-damage-pop { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); color: #ff4757; font-size: 32px; font-weight: 900; animation: floatUpCard 1.2s forwards; pointer-events: none; z-index: 99; text-shadow: 0 2px 4px #000; }
         .target-damage-pop.crit-pop { color: #f1c40f; font-size: 38px; text-shadow: 0 0 10px #e67e22; }
         .target-damage-pop.kill-pop { color: #ff0000; font-size: 42px; text-shadow: 0 0 15px #000; }
@@ -113,7 +113,6 @@
         <h3>Spelers in Lobby:</h3>
         <div id="lobby-players" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
 
-        <!-- Uitgebreide Instellingen (Numerieke Invoervelden) -->
         <div id="host-settings-area" class="settings-box" style="display:none;">
             <h3>⚙️ Game Instellingen</h3>
             <div class="settings-grid">
@@ -122,11 +121,11 @@
                     <input type="number" id="setting-target-wins" value="5" min="1" max="50" onchange="updateSettings()">
                 </div>
                 <div>
-                    <label>Start HP:</label><br>
+                    <label>Base HP:</label><br>
                     <input type="number" id="setting-start-hp" value="5" min="1" max="999" onchange="updateSettings()">
                 </div>
                 <div>
-                    <label>Start Defense (AC):</label><br>
+                    <label>Base Defense (AC):</label><br>
                     <input type="number" id="setting-start-def" value="10" min="1" max="99" onchange="updateSettings()">
                 </div>
                 <div>
@@ -204,7 +203,7 @@
     let isHost = false;
     let myName = "";
     let myId = "";
-    let isAttacking = false; // Vlag om dubbel-kikken op attack te voorkomen
+    let isAttacking = false; 
     
     let hostConnections = []; 
     let gameState = { 
@@ -226,6 +225,118 @@
         document.getElementById(id).classList.add('active');
     }
 
+    // --- DYNAMISCHE STATS BEREKENING ---
+    function calculatePlayerStats(player) {
+        let stats = {
+            dmg: 1,
+            atk: 0,
+            hp: gameState.settings.startHp || 5,
+            def: gameState.settings.startDef || 10
+        };
+
+        let multipliers = { dmg: 1, atk: 1, hp: 1, def: 1 };
+
+        player.cards.forEach(card => {
+            // Flat Buffs & Debuffs
+            for (let s in card.buffs) stats[s] += card.buffs[s];
+            for (let s in card.debuffs) stats[s] += card.debuffs[s];
+            // Multipliers
+            for (let s in card.mults) multipliers[s] *= card.mults[s];
+        });
+
+        stats.dmg = Math.max(0, Math.round(stats.dmg * multipliers.dmg));
+        stats.hp = Math.max(0, Math.round(stats.hp * multipliers.hp));
+        stats.def = Math.max(0, Math.round(stats.def * multipliers.def));
+        stats.atk = Math.round(stats.atk * multipliers.atk); // ATK mag negatief zijn
+
+        return stats;
+    }
+
+    // --- SPELREGELS KAARTEN GENERATOR ---
+    function generateRandomCard() {
+        let randRarity = Math.random() * 100;
+        let rarity = 'Common';
+        if (randRarity > 95) rarity = 'Legendary';
+        else if (randRarity > 80) rarity = 'Rare';
+        else if (randRarity > 50) rarity = 'Uncommon';
+
+        let variant = 'None';
+        if (rarity !== 'Legendary' && Math.random() * 100 < 5) {
+            variant = Math.random() < 0.5 ? 'Blessed' : 'Cursed';
+        }
+
+        let card = { rarity, variant, buffs: {}, debuffs: {}, mults: {}, name: "" };
+        const statNames = ['dmg', 'atk', 'hp', 'def'];
+        let chosenStat = statNames[Math.floor(Math.random() * statNames.length)];
+
+        if (rarity === 'Common') {
+            let val = (chosenStat === 'hp') ? (Math.random() < 0.5 ? 2 : 3) : 1;
+            card.buffs[chosenStat] = val;
+            card.name = `Common ${chosenStat.toUpperCase()}`;
+        } 
+        else if (rarity === 'Uncommon') {
+            let val = (chosenStat === 'hp') ? (Math.random() < 0.5 ? 4 : 5) : ((chosenStat === 'def') ? 2 : (Math.random() < 0.5 ? 2 : 3));
+            card.buffs[chosenStat] = val;
+            
+            // Debuff toevoegen aan andere stat
+            let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
+            let debuffVal = -Math.ceil(val / 2);
+            card.debuffs[debuffStat] = debuffVal;
+            card.name = `Uncommon ${chosenStat.toUpperCase()}`;
+        }
+        else if (rarity === 'Rare') {
+            let isMult = (chosenStat === 'hp' || chosenStat === 'dmg') && Math.random() < 0.3;
+            if (isMult) {
+                card.mults[chosenStat] = 1.5 + (Math.random() * 0.5); // Max x2
+                card.name = `Rare ${chosenStat.toUpperCase()} Multiplier`;
+            } else {
+                let val = (chosenStat === 'hp') ? Math.floor(Math.random() * 4) + 7 : ((chosenStat === 'def') ? (Math.random() < 0.5 ? 3 : 4) : 5);
+                card.buffs[chosenStat] = val;
+                card.name = `Rare ${chosenStat.toUpperCase()}`;
+            }
+            let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
+            card.debuffs[debuffStat] = -Math.ceil(3);
+        }
+        else if (rarity === 'Legendary') {
+            let isMult = Math.random() < 0.4;
+            if (isMult) {
+                card.mults[chosenStat] = 2 + (Math.random() * 1.0); // Max x3
+                card.name = `Legendary ${chosenStat.toUpperCase()} Multiplier`;
+            } else {
+                let val = (chosenStat === 'hp') ? Math.floor(Math.random() * 4) + 12 : ((chosenStat === 'def') ? Math.floor(Math.random() * 3) + 3 : Math.floor(Math.random() * 6) + 5);
+                card.buffs[chosenStat] = val;
+                card.name = `Legendary ${chosenStat.toUpperCase()}`;
+            }
+            let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
+            card.debuffs[debuffStat] = -Math.ceil(4);
+        }
+
+        // --- VARIANTS TOEPASSEN ---
+        if (variant === 'Blessed') {
+            for (let s in card.buffs) card.buffs[s] = Math.ceil(card.buffs[s] * 1.5);
+            for (let s in card.mults) card.mults[s] = parseFloat((card.mults[s] * 1.2).toFixed(1));
+        }
+        if (variant === 'Cursed') {
+            for (let s in card.buffs) card.buffs[s] *= 2;
+            for (let s in card.debuffs) card.debuffs[s] *= 2;
+            for (let s in card.mults) card.mults[s] = parseFloat((card.mults[s] * 1.3).toFixed(1));
+            
+            if (Object.keys(card.debuffs).length === 0) {
+                let dStat = statNames.filter(s => s !== chosenStat)[0];
+                card.debuffs[dStat] = -2;
+            }
+        }
+
+        // Tekstuele weergave op de kaart
+        let descriptions = [];
+        for (let s in card.buffs) descriptions.push(`<span style="color:#2ecc71">+${card.buffs[s]} ${s.toUpperCase()}</span>`);
+        for (let s in card.mults) descriptions.push(`<span style="color:#f1c40f">x${card.mults[s].toFixed(1)} ${s.toUpperCase()}</span>`);
+        for (let s in card.debuffs) descriptions.push(`<span style="color:#e74c3c">${card.debuffs[s]} ${s.toUpperCase()}</span>`);
+        card.label = descriptions.join('<br>');
+
+        return card;
+    }
+
     function createHost() {
         myName = document.getElementById('username').value.trim();
         if (!myName) return alert("Vul eerst een naam in!");
@@ -238,7 +349,7 @@
             isHost = true;
             gameState.players.push({ 
                 id: myId, name: myName, hp: gameState.settings.startHp, maxHp: gameState.settings.startHp, 
-                wins: 0, cards: [], dmg: 1, atk: 0, def: gameState.settings.startDef 
+                wins: 0, cards: [] 
             });
             
             document.getElementById('display-code').innerText = myId;
@@ -284,7 +395,7 @@
         if (data.type === 'JOIN') {
             gameState.players.push({ 
                 id: conn.peer, name: data.name, hp: gameState.settings.startHp, maxHp: gameState.settings.startHp, 
-                wins: 0, cards: [], dmg: 1, atk: 0, def: gameState.settings.startDef 
+                wins: 0, cards: [] 
             });
             updateLobbyUI();
             broadcastState();
@@ -293,7 +404,7 @@
             let pId = gameState.cardPickQueue[gameState.pickerIndex];
             let p = gameState.players.find(x => x.id === pId);
             if (p && gameState.cardChoicesMap[pId]) {
-                applyCard(p, gameState.cardChoicesMap[pId][data.cardIndex]);
+                p.cards.push(gameState.cardChoicesMap[pId][data.cardIndex]);
             }
             advanceCardPick();
         }
@@ -315,6 +426,7 @@
     }
 
     function broadcastState() {
+        isAttacking = false; // Reset attack lock bij elke state update
         hostConnections.forEach(conn => conn.send({ type: 'STATE_UPDATE', state: gameState }));
         renderGameUI();
     }
@@ -338,6 +450,7 @@
 
             clientConn.on('data', (data) => {
                 if (data.type === 'STATE_UPDATE') {
+                    isAttacking = false; // Reset attack lock bij updates
                     let oldHp = (gameState.players.find(p => p.id === myId) || {}).hp;
                     gameState = data.state;
                     let me = gameState.players.find(p => p.id === myId);
@@ -359,46 +472,6 @@
         });
     }
 
-    function generateRandomCard() {
-        let rand = Math.random() * 100;
-        let rarity = 'Common';
-        if (rand > 93) rarity = 'Legendary';
-        else if (rand > 75) rarity = 'Rare';
-        else if (rand > 45) rarity = 'Uncommon';
-
-        let pool = [];
-        if (rarity === 'Common') {
-            pool = [
-                { rarity: 'Common', stat: 'hp', val: 3, label: '+3 Max HP' },
-                { rarity: 'Common', stat: 'dmg', val: 1, label: '+1 Damage' },
-                { rarity: 'Common', stat: 'def', val: 1, label: '+1 Defense (AC)' },
-                { rarity: 'Common', stat: 'atk', val: 1, label: '+1 Attack Roll' }
-            ];
-        } else if (rarity === 'Uncommon') {
-            pool = [
-                { rarity: 'Uncommon', stat: 'hp', val: 5, label: '+5 Max HP' },
-                { rarity: 'Uncommon', stat: 'dmg', val: 2, label: '+2 Damage' },
-                { rarity: 'Uncommon', stat: 'def', val: 2, label: '+2 Defense (AC)' },
-                { rarity: 'Uncommon', stat: 'atk', val: 2, label: '+2 Attack Roll' }
-            ];
-        } else if (rarity === 'Rare') {
-            pool = [
-                { rarity: 'Rare', stat: 'hp', val: 8, label: '+8 Max HP' },
-                { rarity: 'Rare', stat: 'dmg', val: 4, label: '+4 Damage' },
-                { rarity: 'Rare', stat: 'def', val: 3, label: '+3 Defense (AC)' },
-                { rarity: 'Rare', stat: 'atk', val: 4, label: '+4 Attack Roll' }
-            ];
-        } else {
-            pool = [
-                { rarity: 'Legendary', stat: 'all', val: 3, label: '👑 Titan: +5 HP, +3 DMG, +2 AC' },
-                { rarity: 'Legendary', stat: 'dmg', val: 7, label: '⚔️ Berserker: +7 DMG!' },
-                { rarity: 'Legendary', stat: 'hp', val: 15, label: '🛡️ Colossus: +15 Max HP!' },
-                { rarity: 'Legendary', stat: 'atk', val: 6, label: '🎯 Sniper: +6 Attack Roll!' }
-            ];
-        }
-        return pool[Math.floor(Math.random() * pool.length)];
-    }
-
     function generateCardsForQueue() {
         gameState.cardChoicesMap = {};
         let count = gameState.settings.cardCount || 3;
@@ -411,13 +484,11 @@
 
     function hostStartGame() {
         gameState.players.forEach(p => {
-            p.hp = gameState.settings.startHp;
-            p.maxHp = gameState.settings.startHp;
-            p.def = gameState.settings.startDef;
             p.wins = 0;
             p.cards = [];
-            p.dmg = 1;
-            p.atk = 0;
+            let computed = calculatePlayerStats(p);
+            p.hp = computed.hp;
+            p.maxHp = computed.hp;
         });
         gameState.phase = 'CARD_PICK';
         gameState.cardPickQueue = gameState.players.map(p => p.id);
@@ -441,20 +512,6 @@
         showScreen('screen-lobby');
     }
 
-    function applyCard(player, card) {
-        player.cards.push(card);
-        if (card.stat === 'all') {
-            player.maxHp += 5; player.hp += 5;
-            player.dmg += 3;
-            player.def += 2;
-        } else {
-            if (card.stat === 'hp') { player.maxHp += card.val; player.hp += card.val; }
-            if (card.stat === 'dmg') player.dmg += card.val;
-            if (card.stat === 'def') player.def += card.val;
-            if (card.stat === 'atk') player.atk += card.val;
-        }
-    }
-
     function advanceCardPick() {
         gameState.pickerIndex++;
         if (gameState.pickerIndex < gameState.cardPickQueue.length) {
@@ -466,6 +523,11 @@
     }
 
     function startCombatPhase() {
+        gameState.players.forEach(p => {
+            let st = calculatePlayerStats(p);
+            p.hp = st.hp;
+            p.maxHp = st.hp;
+        });
         gameState.phase = 'TURN';
         gameState.turnIndex = 0;
         gameState.roundWinnerId = null;
@@ -481,12 +543,15 @@
         let attacker = gameState.players.find(p => p.id === attackerId);
         let target = gameState.players.find(p => p.id === targetId);
 
+        let aStats = calculatePlayerStats(attacker);
+        let tStats = calculatePlayerStats(target);
+
         let roll = Math.floor(Math.random() * 20) + 1;
         let isCrit = (roll === 20);
-        let total = roll + attacker.atk;
-        let hit = isCrit || (total >= target.def);
+        let total = roll + aStats.atk;
+        let hit = isCrit || (total >= tStats.def);
 
-        let damageDealt = attacker.dmg * (isCrit ? 2 : 1);
+        let damageDealt = aStats.dmg * (isCrit ? 2 : 1);
         let wasKilled = false;
 
         if (hit) {
@@ -509,7 +574,6 @@
 
         broadcastState();
 
-        // DOBBELSTEEN ANIMATIE VERTRAGING: De game wacht tot de roll-animatie klaar is!
         let animDelay = (gameState.settings.rollSpeed || 600) + 600;
         setTimeout(() => {
             let alive = gameState.players.filter(p => p.hp > 0);
@@ -523,7 +587,6 @@
                         gameState.phase = 'GAME_OVER';
                         gameState.statusMessage = `🎉 ${winner.name} HEEFT HET SPEL GEWONNEN! 🎉`;
                     } else {
-                        gameState.players.forEach(p => p.hp = p.maxHp);
                         gameState.phase = 'CARD_PICK';
                         
                         let rule = gameState.settings.cardRule;
@@ -551,7 +614,6 @@
                 } while (gameState.players[gameState.turnIndex].hp <= 0);
             }
 
-            isAttacking = false; // Reset attack lock
             updateStatusBanner();
             broadcastState();
         }, animDelay);
@@ -568,7 +630,6 @@
         }
     }
 
-    // DAMAGE EN KILL ANIMATIE
     function triggerDamageEffect(dmgValue, isCrit, targetPlayerId, wasKilled) {
         document.body.classList.add('flash-damage');
         if (isCrit || wasKilled) document.body.classList.add('shake');
@@ -596,14 +657,15 @@
     function renderGameUI() {
         const me = gameState.players.find(p => p.id === myId);
         if (me) {
+            let myStats = calculatePlayerStats(me);
             document.getElementById('my-name-display').innerText = me.name;
             document.getElementById('my-wins').innerText = me.wins;
             document.getElementById('target-wins-display').innerText = gameState.settings.targetWins;
             document.getElementById('my-hp').innerText = me.hp;
-            document.getElementById('my-max-hp').innerText = me.maxHp;
-            document.getElementById('my-def').innerText = me.def;
-            document.getElementById('my-dmg').innerText = me.dmg;
-            document.getElementById('my-atk').innerText = me.atk >= 0 ? `+${me.atk}` : me.atk;
+            document.getElementById('my-max-hp').innerText = myStats.hp;
+            document.getElementById('my-def').innerText = myStats.def;
+            document.getElementById('my-dmg').innerText = myStats.dmg;
+            document.getElementById('my-atk').innerText = myStats.atk >= 0 ? `+${myStats.atk}` : myStats.atk;
         }
 
         const banner = document.getElementById('round-result-banner');
@@ -624,14 +686,17 @@
         document.getElementById('status-banner').innerText = gameState.statusMessage || "Spel bezig...";
 
         let activeTurnPlayer = gameState.players[gameState.turnIndex];
-        document.getElementById('game-players-list').innerHTML = gameState.players.map(p => `
+        document.getElementById('game-players-list').innerHTML = gameState.players.map(p => {
+            let st = calculatePlayerStats(p);
+            return `
             <div id="player-card-${p.id}" class="player-card ${p.hp <= 0 ? 'dead' : ''} ${gameState.phase === 'TURN' && activeTurnPlayer && activeTurnPlayer.id === p.id ? 'active-turn' : ''}" onclick="viewPlayerCards('${p.id}')">
                 <span class="turn-badge">Aan de beurt</span>
                 <strong>${p.name}</strong><br>
-                ❤️ HP: ${p.hp}/${p.maxHp}<br>
-                🛡️ AC: ${p.def}
+                ❤️ HP: ${p.hp}/${st.hp}<br>
+                🛡️ AC: ${st.def}
             </div>
-        `).join('');
+            `;
+        }).join('');
 
         const diceArea = document.getElementById('dice-area');
         if (gameState.phase === 'TURN' && gameState.lastRoll) {
@@ -649,9 +714,11 @@
             if (activePickerId === myId) {
                 let html = `<h3>Kies 1 kaart om je stats te upgraden:</h3><div class="card-selection">`;
                 choices.forEach((c, idx) => {
-                    html += `<div class="game-card rarity-${c.rarity}" onclick="selectCard(${idx})">
+                    let vTag = c.variant !== 'None' ? `<span class="variant-tag tag-${c.variant}">${c.variant}</span>` : '';
+                    html += `<div class="game-card rarity-${c.rarity} variant-${c.variant}" onclick="selectCard(${idx})">
+                                ${vTag}
                                 <strong>${c.rarity}</strong><br><br>
-                                <span style="font-size:18px; font-weight:bold;">${c.label}</span>
+                                <span style="font-size:16px; font-weight:bold;">${c.label}</span>
                              </div>`;
                 });
                 html += `</div>`;
@@ -711,7 +778,7 @@
             let pId = gameState.cardPickQueue[gameState.pickerIndex];
             let p = gameState.players.find(x => x.id === pId);
             if (p && gameState.cardChoicesMap[pId]) {
-                applyCard(p, gameState.cardChoicesMap[pId][idx]);
+                p.cards.push(gameState.cardChoicesMap[pId][idx]);
             }
             advanceCardPick();
         } else {
@@ -720,7 +787,7 @@
     }
 
     function sendAttack(targetId) {
-        if (isAttacking) return; // Blokkeer dubbelklikken
+        if (isAttacking) return; 
         isAttacking = true;
         
         if (isHost) {
@@ -734,14 +801,16 @@
         const player = gameState.players.find(p => p.id === playerId);
         if (!player) return;
 
+        let st = calculatePlayerStats(player);
+
         document.getElementById('modal-player-name').innerText = `Details van ${player.name}`;
         
         document.getElementById('modal-player-stats').innerHTML = `
             <div class="stat-box">🏆 Wins: ${player.wins}/${gameState.settings.targetWins}</div>
-            <div class="stat-box">❤️ HP: ${player.hp}/${player.maxHp}</div>
-            <div class="stat-box">🛡️ AC: ${player.def}</div>
-            <div class="stat-box">⚔️ DMG: ${player.dmg}</div>
-            <div class="stat-box">🎯 ATK: ${player.atk >= 0 ? '+' + player.atk : player.atk}</div>
+            <div class="stat-box">❤️ HP: ${player.hp}/${st.hp}</div>
+            <div class="stat-box">🛡️ AC: ${st.def}</div>
+            <div class="stat-box">⚔️ DMG: ${st.dmg}</div>
+            <div class="stat-box">🎯 ATK: ${st.atk >= 0 ? '+' + st.atk : st.atk}</div>
         `;
 
         const container = document.getElementById('modal-player-cards');
@@ -750,7 +819,8 @@
         } else {
             container.innerHTML = player.cards.map(c => `
                 <div style="background:#1e1e24; padding:10px; margin:6px 0; border-radius:6px; border-left:4px solid ${c.rarity === 'Legendary' ? '#f1c40f' : '#3498db'};">
-                    <strong>${c.rarity}</strong>: ${c.label}
+                    <strong>${c.rarity} ${c.variant !== 'None' ? `(${c.variant})` : ''}</strong><br>
+                    ${c.label}
                 </div>
             `).join('');
         }
