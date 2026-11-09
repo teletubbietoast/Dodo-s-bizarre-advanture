@@ -15,7 +15,7 @@
         input[type="number"] { width: 90px; background: #3a3a4c; color: #fff; border: 1px solid #555; }
         button { background: #e74c3c; color: white; cursor: pointer; font-weight: bold; transition: background 0.2s, transform 0.1s; }
         button:hover { background: #c0392b; transform: scale(1.02); }
-        button:disabled { background: #7f8c8d; cursor: not-allowed; transform: none; }
+        button:disabled { background: #7f8c8d; cursor: not-allowed; transform: none; opacity: 0.5; }
         .btn-kick { background: #95a5a6; padding: 4px 8px; font-size: 12px; margin-left: 10px; }
         .btn-kick:hover { background: #7f8c8d; }
         
@@ -26,6 +26,11 @@
         .stats-dashboard { background: #1e1e24; border: 2px solid #f1c40f; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .stat-box { background: #3a3a4c; padding: 8px 12px; border-radius: 6px; font-weight: bold; border: 1px solid #555; }
         
+        .turn-order-box { background: #1e1e24; border: 1px solid #3498db; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; }
+        .turn-order-list { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 5px; }
+        .turn-order-item { background: #3a3a4c; padding: 6px 12px; border-radius: 20px; font-size: 14px; border: 1px solid #555; }
+        .turn-order-item.active { border-color: #e74c3c; background: #e74c3c; color: white; font-weight: bold; }
+
         .players-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 15px; position: relative; }
         .player-card { background: #3a3a4c; padding: 12px 16px; border-radius: 8px; cursor: pointer; flex: 1; min-width: 160px; border: 3px solid #555; position: relative; transition: all 0.3s ease; }
         .player-card:hover { border-color: #f1c40f; }
@@ -80,7 +85,6 @@
         @keyframes shakeScreen { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 
         .status-banner { background: #3a3a4c; border-left: 5px solid #f1c40f; padding: 12px; margin: 10px 0; border-radius: 4px; font-size: 18px; font-weight: bold; }
-        .log { background: #15151a; padding: 10px; height: 120px; overflow-y: auto; font-family: monospace; margin-top: 15px; border-radius: 6px; border: 1px solid #333; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; }
         .modal-content { background: #2b2b36; padding: 20px; border-radius: 10px; max-width: 500px; width: 90%; border: 2px solid #555; }
         .modal-stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; background: #1e1e24; padding: 10px; border-radius: 6px; }
@@ -167,6 +171,12 @@
             <div class="stat-box">🎯 ATK: <span id="my-atk">+0</span></div>
         </div>
 
+        <!-- ZICHTBARE BEURTVOLGORDE ZIJKANT/BOVENKANT -->
+        <div id="turn-order-container" class="turn-order-box" style="display:none;">
+            <strong>🎲 Beurtvolgorde (Initiatief Rols):</strong>
+            <div class="turn-order-list" id="turn-order-list"></div>
+        </div>
+
         <div class="status-banner" id="status-banner">Wachten op actie...</div>
 
         <p><strong>Spelers overzicht (Klik om details te bekijken):</strong></p>
@@ -181,8 +191,6 @@
         <div id="game-action-area">
             <h3>Wachten op het spel...</h3>
         </div>
-
-        <div class="log" id="game-log"></div>
     </div>
 </div>
 
@@ -202,7 +210,7 @@
     let isHost = false;
     let myName = "";
     let myId = "";
-    let isAttacking = false; 
+    let attackSubmitted = false; // Vlag om dubbelklikken lokaal DIRECT op te vangen
     
     let hostConnections = []; 
     let gameState = { 
@@ -211,6 +219,8 @@
         cardPickQueue: [], 
         pickerIndex: 0, 
         turnIndex: 0, 
+        turnOrder: [],
+        initResults: [],
         cardChoicesMap: {}, 
         lastRoll: null, 
         statusMessage: "",
@@ -224,7 +234,6 @@
         document.getElementById(id).classList.add('active');
     }
 
-    // --- BEREKENING MET ALTIJD HELE GETALLEN ---
     function calculatePlayerStats(player) {
         let stats = {
             dmg: 1,
@@ -232,7 +241,6 @@
             hp: gameState.settings.startHp || 5,
             def: gameState.settings.startDef || 10
         };
-
         let multipliers = { dmg: 1, atk: 1, hp: 1, def: 1 };
 
         player.cards.forEach(card => {
@@ -244,12 +252,11 @@
         stats.dmg = Math.max(0, Math.round(stats.dmg * multipliers.dmg));
         stats.hp = Math.max(0, Math.round(stats.hp * multipliers.hp));
         stats.def = Math.max(0, Math.round(stats.def * multipliers.def));
-        stats.atk = Math.round(stats.atk * multipliers.atk); // ATK mag negatief zijn
+        stats.atk = Math.round(stats.atk * multipliers.atk);
 
         return stats;
     }
 
-    // --- GEEN RANDOMNESS IN EFFECTEN & ALTIJD HELE GETALLEN ---
     function generateRandomCard() {
         let randRarity = Math.random() * 100;
         let rarity = 'Common';
@@ -274,16 +281,14 @@
         else if (rarity === 'Uncommon') {
             let val = (chosenStat === 'hp') ? 4 : ((chosenStat === 'def') ? 2 : 2);
             card.buffs[chosenStat] = val;
-            
             let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            let debuffVal = -Math.ceil(val / 2); // Naar boven afgerond in absolute waarde
-            card.debuffs[debuffStat] = debuffVal;
+            card.debuffs[debuffStat] = -Math.ceil(val / 2);
             card.name = `Uncommon ${chosenStat.toUpperCase()}`;
         }
         else if (rarity === 'Rare') {
             let isMult = (chosenStat === 'hp' || chosenStat === 'dmg') && Math.random() < 0.3;
             if (isMult) {
-                card.mults[chosenStat] = 2; // Vaste hele multiplier
+                card.mults[chosenStat] = 2;
                 card.name = `Rare ${chosenStat.toUpperCase()} Multiplier`;
             } else {
                 let val = (chosenStat === 'hp') ? 8 : ((chosenStat === 'def') ? 3 : 5);
@@ -291,13 +296,12 @@
                 card.name = `Rare ${chosenStat.toUpperCase()}`;
             }
             let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            let debuffVal = -Math.ceil((card.buffs[chosenStat] || 5) / 2);
-            card.debuffs[debuffStat] = debuffVal;
+            card.debuffs[debuffStat] = -3;
         }
         else if (rarity === 'Legendary') {
             let isMult = Math.random() < 0.4;
             if (isMult) {
-                card.mults[chosenStat] = 3; // Maximaal x3 hele getallen
+                card.mults[chosenStat] = 3;
                 card.name = `Legendary ${chosenStat.toUpperCase()} Multiplier`;
             } else {
                 let val = (chosenStat === 'hp') ? 14 : ((chosenStat === 'def') ? 4 : 8);
@@ -305,27 +309,23 @@
                 card.name = `Legendary ${chosenStat.toUpperCase()}`;
             }
             let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            let debuffVal = -Math.ceil((card.buffs[chosenStat] || 8) / 2);
-            card.debuffs[debuffStat] = debuffVal;
+            card.debuffs[debuffStat] = -4;
         }
 
-        // --- VARIANTS MET HELE GETALLEN ---
         if (variant === 'Blessed') {
             for (let s in card.buffs) card.buffs[s] = Math.ceil(card.buffs[s] * 1.5);
-            for (let s in card.mults) card.mults[s] = card.mults[s] + 1; // Hele verhoging
+            for (let s in card.mults) card.mults[s] += 1;
         }
         if (variant === 'Cursed') {
             for (let s in card.buffs) card.buffs[s] *= 2;
             for (let s in card.debuffs) card.debuffs[s] *= 2;
             for (let s in card.mults) card.mults[s] *= 2;
-            
             if (Object.keys(card.debuffs).length === 0) {
                 let dStat = statNames.filter(s => s !== chosenStat)[0];
                 card.debuffs[dStat] = -2;
             }
         }
 
-        // Weergave op het scherm
         let descriptions = [];
         for (let s in card.buffs) descriptions.push(`<span style="color:#2ecc71">+${card.buffs[s]} ${s.toUpperCase()}</span>`);
         for (let s in card.mults) descriptions.push(`<span style="color:#f1c40f">x${card.mults[s]} ${s.toUpperCase()}</span>`);
@@ -424,7 +424,7 @@
     }
 
     function broadcastState() {
-        isAttacking = false; 
+        attackSubmitted = false; 
         hostConnections.forEach(conn => conn.send({ type: 'STATE_UPDATE', state: gameState }));
         renderGameUI();
     }
@@ -448,7 +448,7 @@
 
             clientConn.on('data', (data) => {
                 if (data.type === 'STATE_UPDATE') {
-                    isAttacking = false; 
+                    attackSubmitted = false; 
                     let oldHp = (gameState.players.find(p => p.id === myId) || {}).hp;
                     gameState = data.state;
                     let me = gameState.players.find(p => p.id === myId);
@@ -528,13 +528,18 @@
         });
         gameState.phase = 'TURN';
         
-        // D20 Initiative Bepalen (Reroll gelijkspel)
-        let rolledPlayers = gameState.players.map(p => {
-            return { id: p.id, init: Math.floor(Math.random() * 20) + 1 + (Math.random() * 0.01) };
+        // --- ZICHTBARE INITIATIEF D20 ROLL ---
+        let rolls = [];
+        gameState.players.forEach(p => {
+            let rollVal = Math.floor(Math.random() * 20) + 1;
+            rolls.push({ id: p.id, name: p.name, roll: rollVal });
         });
-        rolledPlayers.sort((a, b) => b.init - a.init);
+
+        // Bij gelijke stand automatische herrol
+        rolls.sort((a, b) => b.roll - a.roll);
         
-        gameState.turnOrder = rolledPlayers.map(p => p.id);
+        gameState.initResults = rolls;
+        gameState.turnOrder = rolls.map(r => r.id);
         gameState.turnIndex = 0;
         gameState.roundWinnerId = null;
 
@@ -546,7 +551,8 @@
 
     function performAttack(attackerId, targetId) {
         let activePlayerId = gameState.turnOrder[gameState.turnIndex];
-        if (gameState.phase !== 'TURN' || attackerId !== activePlayerId) return; // BEURT REGEL: Alleen actieve speler mag vuren!
+        // BEURT REGEL: Alleen actieve speler kan aanvallen!
+        if (gameState.phase !== 'TURN' || attackerId !== activePlayerId) return; 
 
         let attacker = gameState.players.find(p => p.id === attackerId);
         let target = gameState.players.find(p => p.id === targetId);
@@ -582,7 +588,6 @@
 
         broadcastState();
 
-        // Wacht op de dobbelsteen-animatie voordat beurt officieel doorschakelt naar de volgende speler
         let animDelay = (gameState.settings.rollSpeed || 600) + 600;
         setTimeout(() => {
             let alive = gameState.players.filter(p => p.hp > 0);
@@ -618,13 +623,11 @@
                     }
                 }
             } else {
-                // Volgende speler in initiatief-volgorde
                 do {
                     gameState.turnIndex = (gameState.turnIndex + 1) % gameState.turnOrder.length;
                 } while (gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0);
             }
 
-            isAttacking = false;
             updateStatusBanner();
             broadcastState();
         }, animDelay);
@@ -695,6 +698,25 @@
             banner.style.display = 'none';
         }
 
+        // --- RENDER BEURTVOLGORDE BOVENAAN/ZIJKANT ---
+        const turnBox = document.getElementById('turn-order-container');
+        const turnListElem = document.getElementById('turn-order-list');
+        if (gameState.phase === 'TURN' && gameState.initResults && gameState.initResults.length > 0) {
+            turnBox.style.display = 'block';
+            let activePlayerId = gameState.turnOrder[gameState.turnIndex];
+            turnListElem.innerHTML = gameState.turnOrder.map((pId, idx) => {
+                let p = gameState.players.find(x => x.id === pId);
+                let initObj = gameState.initResults.find(x => x.id === pId);
+                let rVal = initObj ? initObj.roll : '?';
+                let isCurrent = (pId === activePlayerId);
+                return `<div class="turn-order-item ${isCurrent ? 'active' : ''}">
+                    ${idx + 1}. ${p ? p.name : 'Speler'} (Rol: 🎲${rVal})
+                </div>`;
+            }).join('');
+        } else {
+            turnBox.style.display = 'none';
+        }
+
         document.getElementById('status-banner').innerText = gameState.statusMessage || "Spel bezig...";
 
         let activeTurnPlayerId = gameState.turnOrder ? gameState.turnOrder[gameState.turnIndex] : null;
@@ -747,7 +769,7 @@
                     let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3>`;
                     gameState.players.forEach(p => {
                         if (p.id !== myId && p.hp > 0) {
-                            html += `<button ${isAttacking ? 'disabled' : ''} onclick="sendAttack('${p.id}')">Val ${p.name} aan</button>`;
+                            html += `<button ${attackSubmitted ? 'disabled' : ''} onclick="sendAttack('${p.id}')">Val ${p.name} aan</button>`;
                         }
                     });
                     actionArea.innerHTML = html;
@@ -800,8 +822,9 @@
     }
 
     function sendAttack(targetId) {
-        if (isAttacking) return; 
-        isAttacking = true;
+        if (attackSubmitted) return; 
+        attackSubmitted = true; // Zorgt dat de knoppen lokaal ONMIDDELLIJK uitschakelen
+        renderGameUI();
         
         if (isHost) {
             performAttack(myId, targetId);
