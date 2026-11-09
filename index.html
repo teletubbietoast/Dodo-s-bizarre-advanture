@@ -12,8 +12,10 @@
         .screen { display: none; }
         .screen.active { display: block; }
         input, button, select { padding: 10px 15px; font-size: 16px; margin: 5px; border-radius: 6px; border: none; }
+        input[type="number"] { width: 90px; background: #3a3a4c; color: #fff; border: 1px solid #555; }
         button { background: #e74c3c; color: white; cursor: pointer; font-weight: bold; transition: background 0.2s, transform 0.1s; }
         button:hover { background: #c0392b; transform: scale(1.02); }
+        button:disabled { background: #7f8c8d; cursor: not-allowed; transform: none; }
         .btn-kick { background: #95a5a6; padding: 4px 8px; font-size: 12px; margin-left: 10px; }
         .btn-kick:hover { background: #7f8c8d; }
         
@@ -33,6 +35,16 @@
         .player-card.active-turn { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; animation: turnPulse 1.5s infinite alternate; }
         @keyframes turnPulse { 0% { box-shadow: 0 0 8px #e74c3c; } 100% { box-shadow: 0 0 20px #e74c3c, 0 0 30px #f39c12; } }
         
+        /* Kill / Death Animatie */
+        .player-card.just-killed { animation: killAnimation 1s forwards ease-in-out; }
+        @keyframes killAnimation {
+            0% { transform: scale(1); border-color: #ff4757; background: #ff4757; }
+            20% { transform: scale(1.1) rotate(-3deg); }
+            40% { transform: scale(1.1) rotate(3deg); }
+            60% { transform: scale(1) rotate(-1deg); }
+            100% { transform: scale(1); opacity: 0.35; background: #1a1a20; }
+        }
+
         .turn-badge { display: none; background: #e74c3c; color: #fff; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; position: absolute; top: -10px; right: 10px; text-transform: uppercase; }
         .active-turn .turn-badge { display: block; }
 
@@ -62,6 +74,7 @@
         /* Damage Pop Boven Speler */
         .target-damage-pop { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); color: #ff4757; font-size: 32px; font-weight: 900; animation: floatUpCard 1.2s forwards; pointer-events: none; z-index: 99; text-shadow: 0 2px 4px #000; }
         .target-damage-pop.crit-pop { color: #f1c40f; font-size: 38px; text-shadow: 0 0 10px #e67e22; }
+        .target-damage-pop.kill-pop { color: #ff0000; font-size: 42px; text-shadow: 0 0 15px #000; }
         @keyframes floatUpCard { 0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); } 50% { transform: translate(-50%, -20px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -40px) scale(1); } }
         .flash-damage { background-color: #78281f !important; }
         .shake { animation: shakeScreen 0.3s ease-in-out; }
@@ -100,33 +113,21 @@
         <h3>Spelers in Lobby:</h3>
         <div id="lobby-players" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
 
-        <!-- Uitgebreide Instellingen (Zichtbaar voor Host) -->
+        <!-- Uitgebreide Instellingen (Numerieke Invoervelden) -->
         <div id="host-settings-area" class="settings-box" style="display:none;">
-            <h3>⚙️ Uitgebreide Game Instellingen</h3>
+            <h3>⚙️ Game Instellingen</h3>
             <div class="settings-grid">
                 <div>
                     <label>Aantal Wins tot Winst:</label><br>
-                    <select id="setting-target-wins" onchange="updateSettings()">
-                        <option value="3">3 Wins</option>
-                        <option value="5" selected>5 Wins</option>
-                        <option value="10">10 Wins</option>
-                    </select>
+                    <input type="number" id="setting-target-wins" value="5" min="1" max="50" onchange="updateSettings()">
                 </div>
                 <div>
                     <label>Start HP:</label><br>
-                    <select id="setting-start-hp" onchange="updateSettings()">
-                        <option value="5" selected>5 HP (Standaard)</option>
-                        <option value="10">10 HP</option>
-                        <option value="15">15 HP</option>
-                    </select>
+                    <input type="number" id="setting-start-hp" value="5" min="1" max="999" onchange="updateSettings()">
                 </div>
                 <div>
                     <label>Start Defense (AC):</label><br>
-                    <select id="setting-start-def" onchange="updateSettings()">
-                        <option value="8">8 DEF</option>
-                        <option value="10" selected>10 DEF (Standaard)</option>
-                        <option value="12">12 DEF</option>
-                    </select>
+                    <input type="number" id="setting-start-def" value="10" min="1" max="99" onchange="updateSettings()">
                 </div>
                 <div>
                     <label>Wie kiest kaarten na ronde?</label><br>
@@ -138,19 +139,11 @@
                 </div>
                 <div>
                     <label>Aantal Kaartopties per Keuze:</label><br>
-                    <select id="setting-card-count" onchange="updateSettings()">
-                        <option value="2">2 Kaarten</option>
-                        <option value="3" selected>3 Kaarten</option>
-                        <option value="4">4 Kaarten</option>
-                    </select>
+                    <input type="number" id="setting-card-count" value="3" min="1" max="6" onchange="updateSettings()">
                 </div>
                 <div>
-                    <label>Rol Animatiesnelheid:</label><br>
-                    <select id="setting-roll-speed" onchange="updateSettings()">
-                        <option value="200">Snel (0.2s)</option>
-                        <option value="500" selected>Normaal (0.5s)</option>
-                        <option value="1000">Langzaam (1.0s)</option>
-                    </select>
+                    <label>Rol Animatietijd (ms):</label><br>
+                    <input type="number" id="setting-roll-speed" value="600" min="100" max="3000" step="100" onchange="updateSettings()">
                 </div>
             </div>
         </div>
@@ -211,6 +204,7 @@
     let isHost = false;
     let myName = "";
     let myId = "";
+    let isAttacking = false; // Vlag om dubbel-kikken op attack te voorkomen
     
     let hostConnections = []; 
     let gameState = { 
@@ -223,7 +217,7 @@
         lastRoll: null, 
         statusMessage: "",
         roundWinnerId: null,
-        settings: { targetWins: 5, startHp: 5, startDef: 10, cardRule: 'losers', cardCount: 3, rollSpeed: 500 }
+        settings: { targetWins: 5, startHp: 5, startDef: 10, cardRule: 'losers', cardCount: 3, rollSpeed: 600 }
     };
     let clientConn = null;
 
@@ -277,12 +271,12 @@
 
     function updateSettings() {
         if (!isHost) return;
-        gameState.settings.targetWins = parseInt(document.getElementById('setting-target-wins').value);
-        gameState.settings.startHp = parseInt(document.getElementById('setting-start-hp').value);
-        gameState.settings.startDef = parseInt(document.getElementById('setting-start-def').value);
+        gameState.settings.targetWins = parseInt(document.getElementById('setting-target-wins').value) || 5;
+        gameState.settings.startHp = parseInt(document.getElementById('setting-start-hp').value) || 5;
+        gameState.settings.startDef = parseInt(document.getElementById('setting-start-def').value) || 10;
         gameState.settings.cardRule = document.getElementById('setting-card-rule').value;
-        gameState.settings.cardCount = parseInt(document.getElementById('setting-card-count').value);
-        gameState.settings.rollSpeed = parseInt(document.getElementById('setting-roll-speed').value);
+        gameState.settings.cardCount = parseInt(document.getElementById('setting-card-count').value) || 3;
+        gameState.settings.rollSpeed = parseInt(document.getElementById('setting-roll-speed').value) || 600;
         broadcastState();
     }
 
@@ -349,7 +343,8 @@
                     let me = gameState.players.find(p => p.id === myId);
 
                     if (oldHp !== undefined && me && me.hp < oldHp) {
-                        triggerDamageEffect(me.hp - oldHp, false, myId);
+                        let killed = me.hp <= 0;
+                        triggerDamageEffect(me.hp - oldHp, false, myId, killed);
                     }
 
                     if (gameState.phase === 'LOBBY') {
@@ -492,11 +487,15 @@
         let hit = isCrit || (total >= target.def);
 
         let damageDealt = attacker.dmg * (isCrit ? 2 : 1);
+        let wasKilled = false;
 
         if (hit) {
             target.hp -= damageDealt;
-            if (target.hp <= 0) target.hp = 0;
-            triggerDamageEffect(-damageDealt, isCrit, target.id);
+            if (target.hp <= 0) {
+                target.hp = 0;
+                wasKilled = true;
+            }
+            triggerDamageEffect(-damageDealt, isCrit, target.id, wasKilled);
         }
 
         gameState.lastRoll = {
@@ -510,7 +509,8 @@
 
         broadcastState();
 
-        // RONDE EINDE VERTRAGING: Wacht 1.5s totdat de animaties compleet zijn voor de volgende stap
+        // DOBBELSTEEN ANIMATIE VERTRAGING: De game wacht tot de roll-animatie klaar is!
+        let animDelay = (gameState.settings.rollSpeed || 600) + 600;
         setTimeout(() => {
             let alive = gameState.players.filter(p => p.hp > 0);
             if (alive.length <= 1) {
@@ -551,9 +551,10 @@
                 } while (gameState.players[gameState.turnIndex].hp <= 0);
             }
 
+            isAttacking = false; // Reset attack lock
             updateStatusBanner();
             broadcastState();
-        }, 1500);
+        }, animDelay);
     }
 
     function updateStatusBanner() {
@@ -567,10 +568,10 @@
         }
     }
 
-    // DAMAGE EFFECT BARS OP SPELER KAART
-    function triggerDamageEffect(dmgValue, isCrit, targetPlayerId) {
+    // DAMAGE EN KILL ANIMATIE
+    function triggerDamageEffect(dmgValue, isCrit, targetPlayerId, wasKilled) {
         document.body.classList.add('flash-damage');
-        if (isCrit) document.body.classList.add('shake');
+        if (isCrit || wasKilled) document.body.classList.add('shake');
         setTimeout(() => {
             document.body.classList.remove('flash-damage');
             document.body.classList.remove('shake');
@@ -578,9 +579,15 @@
 
         const targetCardElem = document.getElementById(`player-card-${targetPlayerId}`);
         if (targetCardElem) {
+            if (wasKilled) {
+                targetCardElem.classList.add('just-killed');
+                setTimeout(() => targetCardElem.classList.remove('just-killed'), 1000);
+            }
+
             const pop = document.createElement('div');
-            pop.className = `target-damage-pop ${isCrit ? 'crit-pop' : ''}`;
-            pop.innerText = isCrit ? `CRIT! ${dmgValue}` : `${dmgValue}`;
+            let popClass = `target-damage-pop ${isCrit ? 'crit-pop' : ''} ${wasKilled ? 'kill-pop' : ''}`;
+            pop.className = popClass;
+            pop.innerText = wasKilled ? `${dmgValue} 💀` : (isCrit ? `CRIT! ${dmgValue}` : `${dmgValue}`);
             targetCardElem.appendChild(pop);
             setTimeout(() => pop.remove(), 1200);
         }
@@ -661,7 +668,7 @@
                     let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3>`;
                     gameState.players.forEach(p => {
                         if (p.id !== myId && p.hp > 0) {
-                            html += `<button onclick="sendAttack('${p.id}')">Val ${p.name} aan</button>`;
+                            html += `<button ${isAttacking ? 'disabled' : ''} onclick="sendAttack('${p.id}')">Val ${p.name} aan</button>`;
                         }
                     });
                     actionArea.innerHTML = html;
@@ -688,7 +695,7 @@
         dice.classList.add('rolling');
         dice.classList.remove('crit');
 
-        let speed = gameState.settings.rollSpeed || 500;
+        let speed = gameState.settings.rollSpeed || 600;
 
         setTimeout(() => {
             dice.classList.remove('rolling');
@@ -713,6 +720,9 @@
     }
 
     function sendAttack(targetId) {
+        if (isAttacking) return; // Blokkeer dubbelklikken
+        isAttacking = true;
+        
         if (isHost) {
             performAttack(myId, targetId);
         } else {
