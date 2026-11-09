@@ -50,7 +50,6 @@
         .round-banner.lose { background: #c0392b; color: #fff; border: 2px solid #e74c3c; }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* Kaarten Styling met Variants */
         .card-selection { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
         .game-card { background: #ecf0f1; color: #2c3e50; padding: 15px; border-radius: 10px; cursor: pointer; flex: 1; min-width: 200px; border: 4px solid #bdc3c7; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
         .game-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.4); }
@@ -225,7 +224,7 @@
         document.getElementById(id).classList.add('active');
     }
 
-    // --- DYNAMISCHE STATS BEREKENING ---
+    // --- BEREKENING MET ALTIJD HELE GETALLEN ---
     function calculatePlayerStats(player) {
         let stats = {
             dmg: 1,
@@ -237,10 +236,8 @@
         let multipliers = { dmg: 1, atk: 1, hp: 1, def: 1 };
 
         player.cards.forEach(card => {
-            // Flat Buffs & Debuffs
             for (let s in card.buffs) stats[s] += card.buffs[s];
             for (let s in card.debuffs) stats[s] += card.debuffs[s];
-            // Multipliers
             for (let s in card.mults) multipliers[s] *= card.mults[s];
         });
 
@@ -252,7 +249,7 @@
         return stats;
     }
 
-    // --- SPELREGELS KAARTEN GENERATOR ---
+    // --- GEEN RANDOMNESS IN EFFECTEN & ALTIJD HELE GETALLEN ---
     function generateRandomCard() {
         let randRarity = Math.random() * 100;
         let rarity = 'Common';
@@ -270,56 +267,57 @@
         let chosenStat = statNames[Math.floor(Math.random() * statNames.length)];
 
         if (rarity === 'Common') {
-            let val = (chosenStat === 'hp') ? (Math.random() < 0.5 ? 2 : 3) : 1;
+            let val = (chosenStat === 'hp') ? 3 : 1;
             card.buffs[chosenStat] = val;
             card.name = `Common ${chosenStat.toUpperCase()}`;
         } 
         else if (rarity === 'Uncommon') {
-            let val = (chosenStat === 'hp') ? (Math.random() < 0.5 ? 4 : 5) : ((chosenStat === 'def') ? 2 : (Math.random() < 0.5 ? 2 : 3));
+            let val = (chosenStat === 'hp') ? 4 : ((chosenStat === 'def') ? 2 : 2);
             card.buffs[chosenStat] = val;
             
-            // Debuff toevoegen aan andere stat
             let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            let debuffVal = -Math.ceil(val / 2);
+            let debuffVal = -Math.ceil(val / 2); // Naar boven afgerond in absolute waarde
             card.debuffs[debuffStat] = debuffVal;
             card.name = `Uncommon ${chosenStat.toUpperCase()}`;
         }
         else if (rarity === 'Rare') {
             let isMult = (chosenStat === 'hp' || chosenStat === 'dmg') && Math.random() < 0.3;
             if (isMult) {
-                card.mults[chosenStat] = 1.5 + (Math.random() * 0.5); // Max x2
+                card.mults[chosenStat] = 2; // Vaste hele multiplier
                 card.name = `Rare ${chosenStat.toUpperCase()} Multiplier`;
             } else {
-                let val = (chosenStat === 'hp') ? Math.floor(Math.random() * 4) + 7 : ((chosenStat === 'def') ? (Math.random() < 0.5 ? 3 : 4) : 5);
+                let val = (chosenStat === 'hp') ? 8 : ((chosenStat === 'def') ? 3 : 5);
                 card.buffs[chosenStat] = val;
                 card.name = `Rare ${chosenStat.toUpperCase()}`;
             }
             let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            card.debuffs[debuffStat] = -Math.ceil(3);
+            let debuffVal = -Math.ceil((card.buffs[chosenStat] || 5) / 2);
+            card.debuffs[debuffStat] = debuffVal;
         }
         else if (rarity === 'Legendary') {
             let isMult = Math.random() < 0.4;
             if (isMult) {
-                card.mults[chosenStat] = 2 + (Math.random() * 1.0); // Max x3
+                card.mults[chosenStat] = 3; // Maximaal x3 hele getallen
                 card.name = `Legendary ${chosenStat.toUpperCase()} Multiplier`;
             } else {
-                let val = (chosenStat === 'hp') ? Math.floor(Math.random() * 4) + 12 : ((chosenStat === 'def') ? Math.floor(Math.random() * 3) + 3 : Math.floor(Math.random() * 6) + 5);
+                let val = (chosenStat === 'hp') ? 14 : ((chosenStat === 'def') ? 4 : 8);
                 card.buffs[chosenStat] = val;
                 card.name = `Legendary ${chosenStat.toUpperCase()}`;
             }
             let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            card.debuffs[debuffStat] = -Math.ceil(4);
+            let debuffVal = -Math.ceil((card.buffs[chosenStat] || 8) / 2);
+            card.debuffs[debuffStat] = debuffVal;
         }
 
-        // --- VARIANTS TOEPASSEN ---
+        // --- VARIANTS MET HELE GETALLEN ---
         if (variant === 'Blessed') {
             for (let s in card.buffs) card.buffs[s] = Math.ceil(card.buffs[s] * 1.5);
-            for (let s in card.mults) card.mults[s] = parseFloat((card.mults[s] * 1.2).toFixed(1));
+            for (let s in card.mults) card.mults[s] = card.mults[s] + 1; // Hele verhoging
         }
         if (variant === 'Cursed') {
             for (let s in card.buffs) card.buffs[s] *= 2;
             for (let s in card.debuffs) card.debuffs[s] *= 2;
-            for (let s in card.mults) card.mults[s] = parseFloat((card.mults[s] * 1.3).toFixed(1));
+            for (let s in card.mults) card.mults[s] *= 2;
             
             if (Object.keys(card.debuffs).length === 0) {
                 let dStat = statNames.filter(s => s !== chosenStat)[0];
@@ -327,10 +325,10 @@
             }
         }
 
-        // Tekstuele weergave op de kaart
+        // Weergave op het scherm
         let descriptions = [];
         for (let s in card.buffs) descriptions.push(`<span style="color:#2ecc71">+${card.buffs[s]} ${s.toUpperCase()}</span>`);
-        for (let s in card.mults) descriptions.push(`<span style="color:#f1c40f">x${card.mults[s].toFixed(1)} ${s.toUpperCase()}</span>`);
+        for (let s in card.mults) descriptions.push(`<span style="color:#f1c40f">x${card.mults[s]} ${s.toUpperCase()}</span>`);
         for (let s in card.debuffs) descriptions.push(`<span style="color:#e74c3c">${card.debuffs[s]} ${s.toUpperCase()}</span>`);
         card.label = descriptions.join('<br>');
 
@@ -426,7 +424,7 @@
     }
 
     function broadcastState() {
-        isAttacking = false; // Reset attack lock bij elke state update
+        isAttacking = false; 
         hostConnections.forEach(conn => conn.send({ type: 'STATE_UPDATE', state: gameState }));
         renderGameUI();
     }
@@ -450,7 +448,7 @@
 
             clientConn.on('data', (data) => {
                 if (data.type === 'STATE_UPDATE') {
-                    isAttacking = false; // Reset attack lock bij updates
+                    isAttacking = false; 
                     let oldHp = (gameState.players.find(p => p.id === myId) || {}).hp;
                     gameState = data.state;
                     let me = gameState.players.find(p => p.id === myId);
@@ -529,16 +527,26 @@
             p.maxHp = st.hp;
         });
         gameState.phase = 'TURN';
+        
+        // D20 Initiative Bepalen (Reroll gelijkspel)
+        let rolledPlayers = gameState.players.map(p => {
+            return { id: p.id, init: Math.floor(Math.random() * 20) + 1 + (Math.random() * 0.01) };
+        });
+        rolledPlayers.sort((a, b) => b.init - a.init);
+        
+        gameState.turnOrder = rolledPlayers.map(p => p.id);
         gameState.turnIndex = 0;
         gameState.roundWinnerId = null;
-        while (gameState.players[gameState.turnIndex].hp <= 0) {
-            gameState.turnIndex = (gameState.turnIndex + 1) % gameState.players.length;
+
+        while (gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0) {
+            gameState.turnIndex = (gameState.turnIndex + 1) % gameState.turnOrder.length;
         }
         updateStatusBanner();
     }
 
     function performAttack(attackerId, targetId) {
-        if (gameState.phase !== 'TURN') return;
+        let activePlayerId = gameState.turnOrder[gameState.turnIndex];
+        if (gameState.phase !== 'TURN' || attackerId !== activePlayerId) return; // BEURT REGEL: Alleen actieve speler mag vuren!
 
         let attacker = gameState.players.find(p => p.id === attackerId);
         let target = gameState.players.find(p => p.id === targetId);
@@ -574,6 +582,7 @@
 
         broadcastState();
 
+        // Wacht op de dobbelsteen-animatie voordat beurt officieel doorschakelt naar de volgende speler
         let animDelay = (gameState.settings.rollSpeed || 600) + 600;
         setTimeout(() => {
             let alive = gameState.players.filter(p => p.hp > 0);
@@ -609,11 +618,13 @@
                     }
                 }
             } else {
+                // Volgende speler in initiatief-volgorde
                 do {
-                    gameState.turnIndex = (gameState.turnIndex + 1) % gameState.players.length;
-                } while (gameState.players[gameState.turnIndex].hp <= 0);
+                    gameState.turnIndex = (gameState.turnIndex + 1) % gameState.turnOrder.length;
+                } while (gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0);
             }
 
+            isAttacking = false;
             updateStatusBanner();
             broadcastState();
         }, animDelay);
@@ -625,7 +636,8 @@
             let picker = gameState.players.find(p => p.id === activePickerId);
             gameState.statusMessage = `Kaartkeuze: ${picker ? picker.name : 'Iemand'} kiest nu een kaart...`;
         } else if (gameState.phase === 'TURN') {
-            let activeP = gameState.players[gameState.turnIndex];
+            let activePId = gameState.turnOrder[gameState.turnIndex];
+            let activeP = gameState.players.find(p => p.id === activePId);
             gameState.statusMessage = `Gevecht: Het is de beurt van ${activeP ? activeP.name : 'iemand'}!`;
         }
     }
@@ -685,11 +697,11 @@
 
         document.getElementById('status-banner').innerText = gameState.statusMessage || "Spel bezig...";
 
-        let activeTurnPlayer = gameState.players[gameState.turnIndex];
+        let activeTurnPlayerId = gameState.turnOrder ? gameState.turnOrder[gameState.turnIndex] : null;
         document.getElementById('game-players-list').innerHTML = gameState.players.map(p => {
             let st = calculatePlayerStats(p);
             return `
-            <div id="player-card-${p.id}" class="player-card ${p.hp <= 0 ? 'dead' : ''} ${gameState.phase === 'TURN' && activeTurnPlayer && activeTurnPlayer.id === p.id ? 'active-turn' : ''}" onclick="viewPlayerCards('${p.id}')">
+            <div id="player-card-${p.id}" class="player-card ${p.hp <= 0 ? 'dead' : ''} ${gameState.phase === 'TURN' && activeTurnPlayerId === p.id ? 'active-turn' : ''}" onclick="viewPlayerCards('${p.id}')">
                 <span class="turn-badge">Aan de beurt</span>
                 <strong>${p.name}</strong><br>
                 ❤️ HP: ${p.hp}/${st.hp}<br>
@@ -728,7 +740,7 @@
                 actionArea.innerHTML = `<h3>Wachten tot <strong>${picker ? picker.name : 'iemand'}</strong> een kaart kiest...</h3>`;
             }
         } else if (gameState.phase === 'TURN') {
-            if (activeTurnPlayer.id === myId) {
+            if (activeTurnPlayerId === myId) {
                 if (me.hp <= 0) {
                     actionArea.innerHTML = `<h3>Je bent uitgeschakeld deze ronde! Wacht op de volgende ronde.</h3>`;
                 } else {
@@ -741,7 +753,8 @@
                     actionArea.innerHTML = html;
                 }
             } else {
-                actionArea.innerHTML = `<h3>Het is de beurt van <strong>${activeTurnPlayer.name}</strong>...</h3>`;
+                let activeP = gameState.players.find(p => p.id === activeTurnPlayerId);
+                actionArea.innerHTML = `<h3>Het is de beurt van <strong>${activeP ? activeP.name : 'iemand'}</strong>...</h3>`;
             }
         } else if (gameState.phase === 'GAME_OVER') {
             let html = `<h2 style="color:#f1c40f; text-align:center;">${gameState.statusMessage}</h2>`;
