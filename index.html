@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brawler P2P Multiplayer</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -263,12 +263,21 @@
             .card-icon { font-size: 28px; margin: 0; }
             .card-stats { margin-bottom: 0; font-size: 14px; text-align: right; }
         }
-    </style>
+    
+.hpbar{height:7px;background:#1a1a20;border-radius:4px;margin:5px 0;overflow:hidden}
+.hpbar i{display:block;height:100%;background:linear-gradient(90deg,#e74c3c,#2ecc71);transition:width .5s}
+.combat-log{font-size:14px;margin:8px 0;min-height:20px;color:#bbb}
+.combat-log div{padding:2px 0}
+.miss-pop{color:#95a5a6!important;font-size:22px!important}
+#mute-btn{position:absolute;top:12px;right:12px;margin:0;padding:6px 10px;min-height:36px;background:#3a3a4c}
+.game-card.rarity-Rare{box-shadow:0 0 12px #3498db}
+</style>
 </head>
 <body>
 
 <div class="container" id="main-container">
     <h1>Brawler P2P Multiplayer</h1>
+    <button id="mute-btn" onclick="toggleMute()">🔊</button>
 
     <!-- 1. HOOFDMENU -->
     <div id="screen-menu" class="screen active">
@@ -289,12 +298,17 @@
     <div id="screen-lobby" class="screen">
         <h2>Lobby Code: <span id="display-code" style="color:#f1c40f;"></span></h2>
         <p>Deel deze code met je vrienden om ze te laten joinen.</p>
+        <button onclick="copyLink()">📋 Kopieer uitnodigingslink</button>
         
         <div id="lobby-conn-status" class="conn-status"></div>
 
         <h3>Spelers in Lobby:</h3>
         <div id="lobby-players" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
 
+        <h3>💬 Lobby chat</h3>
+        <div id="chat-log" style="background:#1e1e24;border-radius:8px;padding:10px;height:140px;overflow-y:auto;font-size:14px;margin-bottom:6px"></div>
+        <input type="text" id="chat-input" maxlength="200" placeholder="Typ een bericht..." onkeydown="if(event.key==='Enter')sendChat()" style="max-width:none;width:calc(100% - 100px)">
+        <button onclick="sendChat()" style="margin-right:0">Stuur</button>
         <div id="host-settings-area" class="settings-box" style="display:none;">
             <h3>⚙️ Game Instellingen</h3>
             <div class="settings-grid">
@@ -323,7 +337,7 @@
                     <input type="number" id="setting-card-count" value="3" min="1" max="6" onchange="updateSettings()">
                 </div>
                 <div>
-                    <label>Rol Animatietijd (ms):</label>
+                    <label>Beurt/kies-timer (sec, 0 = uit):</label><input type="number" id="setting-turn-time" value="30" min="0" max="300" onchange="updateSettings()"><label style="margin-top:8px">Rol Animatietijd (ms):</label>
                     <input type="number" id="setting-roll-speed" value="600" min="100" max="3000" step="100" onchange="updateSettings()">
                 </div>
             </div>
@@ -355,6 +369,7 @@
         <div class="game-layout">
             <div class="game-main">
                 <div class="status-banner" id="status-banner">Wachten op actie...</div>
+                <div id="timer-badge" style="text-align:right;font-weight:bold;color:#f1c40f;min-height:20px"></div>
 
                 <p><strong>Spelers overzicht (Klik voor details):</strong></p>
                 <div id="game-players-list" class="players-grid"></div>
@@ -365,6 +380,11 @@
 
                 <hr style="border-color: #444;">
 
+                <details style="margin:8px 0"><summary style="cursor:pointer;color:#f1c40f">💬 Chat</summary>
+                    <div id="chat-log-g" style="background:#1e1e24;border-radius:8px;padding:8px;height:110px;overflow-y:auto;font-size:14px;margin:6px 0"></div>
+                    <input type="text" id="chat-input-g" maxlength="200" placeholder="Bericht..." onkeydown="if(event.key==='Enter')sendChat('-g')" style="max-width:none;width:calc(100% - 100px)">
+                    <button onclick="sendChat('-g')" style="margin-right:0">Stuur</button></details>
+                <div id="combat-log" class="combat-log"></div>
                 <div id="game-action-area">
                     <h3>Wachten op het spel...</h3>
                 </div>
@@ -382,7 +402,7 @@
     <div class="modal-content">
         <h3 id="modal-player-name">Details van Speler</h3>
         <div id="modal-player-stats" class="modal-stats"></div>
-        <h4>Gekozen Kaarten:</h4>
+        <div id="modal-host-actions"></div><h4>Gekozen Kaarten:</h4>
         <div id="modal-player-cards"></div>
         <br>
         <button class="menu-btn" onclick="closeModal()">Sluiten</button>
@@ -459,7 +479,7 @@
         lastRoll: null, 
         statusMessage: "",
         roundWinnerId: null,
-        settings: { targetWins: 5, startHp: 5, startDef: 10, cardRule: 'losers', cardCount: 3, rollSpeed: 600 }
+        settings: { targetWins: 5, startHp: 5, startDef: 10, cardRule: 'losers', cardCount: 3, rollSpeed: 600, turnTime: 30 }
     };
     let clientConn = null;
 
@@ -483,8 +503,8 @@
             for (let s in card.mults) multipliers[s] *= card.mults[s];
         });
 
-        stats.dmg = Math.max(0, Math.round(stats.dmg * multipliers.dmg));
-        stats.hp = Math.max(0, Math.round(stats.hp * multipliers.hp));
+        stats.dmg = Math.max(1, Math.round(stats.dmg * multipliers.dmg));
+        stats.hp = Math.max(1, Math.round(stats.hp * multipliers.hp));
         stats.def = Math.max(0, Math.round(stats.def * multipliers.def));
         stats.atk = Math.round(stats.atk * multipliers.atk);
 
@@ -527,7 +547,7 @@
         Legendary: [
             { title: "Double Trouble", icon: "⚡", buffs: {}, debuffs: { def: -4 }, mults: { dmg: 2 } },
             { title: "Titan's Blood", icon: "👑", buffs: {}, debuffs: { atk: -4 }, mults: { hp: 2 } },
-            { title: "Deadeye", icon: "👁️", buffs: {}, debuffs: { hp: -4 }, mults: { atk: 2 } },
+            { title: "Deadeye", icon: "👁️", buffs: { atk: 3 }, debuffs: { hp: -4 }, mults: { atk: 2 } },
             { title: "Aegis", icon: "🔰", buffs: {}, debuffs: { dmg: -3 }, mults: { def: 2 } },
             { title: "Berserker", icon: "👹", buffs: { dmg: 8 }, debuffs: { def: -4 }, mults: {} },
             { title: "Grandmaster", icon: "🎯", buffs: { atk: 8 }, debuffs: { hp: -4 }, mults: {} },
@@ -540,9 +560,9 @@
     function generateRandomCard() {
         let randRarity = Math.random() * 100;
         let rarity = 'Common';
-        if (randRarity > 99.2) rarity = 'Legendary';
-        else if (randRarity > 91.2) rarity = 'Rare';
-        else if (randRarity > 66.2) rarity = 'Uncommon';
+        if (randRarity > 97) rarity = 'Legendary';
+        else if (randRarity > 87) rarity = 'Rare';
+        else if (randRarity > 62) rarity = 'Uncommon';
 
         let variant = 'None';
         if (rarity !== 'Legendary' && Math.random() * 100 < 5) {
@@ -591,8 +611,8 @@
     }
 
     function createHost() {
-        myName = document.getElementById('username').value.trim();
-        if (!myName) return alert("Vul eerst een naam in!");
+        myName = clean(document.getElementById('username').value); try{localStorage.setItem('brawlerName',myName)}catch(e){}
+        if (!myName) return setConnStatus("menu-conn-status","⚠️ Vul eerst een naam in!","error");
 
         setConnStatus("menu-conn-status", "⏳ Lobby aanmaken...");
         if (peer) peer.destroy();
@@ -609,6 +629,7 @@
             }];
             
             document.getElementById('display-code').innerText = myId;
+            setInterval(hostTick, 1000);
             document.getElementById('host-start-btn').style.display = 'block';
             document.getElementById('host-settings-area').style.display = 'block';
             
@@ -619,64 +640,86 @@
         });
 
         peer.on('error', (err) => {
-            setConnStatus("menu-conn-status", `❌ Fout bij hosten (${err.type}): Controleer je internetverbinding.`, "error");
+            setConnStatus("menu-conn-status", `❌ Fout bij hosten (${err.type}): ${err.type === 'unavailable-id' ? 'Code bezet, probeer opnieuw.' : 'Controleer je internetverbinding.'}`, "error");
         });
 
         peer.on('connection', (conn) => {
+            lastSeen[conn.peer] = Date.now();
             hostConnections.push(conn);
             conn.on('data', (data) => handleClientMessage(conn, data));
-            conn.on('close', () => {
-                gameState.players = gameState.players.filter(p => p.id !== conn.peer);
-                broadcastState();
-                updateLobbyUI();
-            });
+            conn.on('close', () => { hostConnections = hostConnections.filter(c => c !== conn); handleLeave(conn.peer); });
         });
     }
 
     function kickPlayer(targetId) {
         if (!isHost) return;
         let conn = hostConnections.find(c => c.peer === targetId);
+        handleLeave(targetId);
         if (conn) conn.close();
-        gameState.players = gameState.players.filter(p => p.id !== targetId);
-        hostConnections = hostConnections.filter(c => c.peer !== targetId);
-        broadcastState();
-        updateLobbyUI();
+    }
+    function skipTurn() {
+        if (isHost && gameState.phase === 'TURN' && !gameState.busy) { nextAlive(); updateStatusBanner(); broadcastState(); }
     }
 
     function updateSettings() {
         if (!isHost) return;
-        gameState.settings.targetWins = parseInt(document.getElementById('setting-target-wins').value) || 5;
-        gameState.settings.startHp = parseInt(document.getElementById('setting-start-hp').value) || 5;
-        gameState.settings.startDef = parseInt(document.getElementById('setting-start-def').value) || 10;
-        gameState.settings.cardRule = document.getElementById('setting-card-rule').value;
-        gameState.settings.cardCount = parseInt(document.getElementById('setting-card-count').value) || 3;
-        gameState.settings.rollSpeed = parseInt(document.getElementById('setting-roll-speed').value) || 600;
+        const n = (id, d, lo, hi) => { let el = document.getElementById(id), v = parseInt(el.value); if (isNaN(v)) v = d; v = Math.min(hi, Math.max(lo, v)); el.value = v; return v; };
+        let s = gameState.settings;
+        s.targetWins = n('setting-target-wins', 5, 1, 50);
+        s.startHp = n('setting-start-hp', 5, 1, 999);
+        s.startDef = n('setting-start-def', 10, 1, 99);
+        s.cardRule = document.getElementById('setting-card-rule').value;
+        s.cardCount = n('setting-card-count', 3, 1, 6);
+        s.rollSpeed = n('setting-roll-speed', 600, 100, 3000);
+        s.turnTime = n('setting-turn-time', 30, 0, 300);
         broadcastState();
     }
 
+    function clean(s) { return String(s || '').replace(/[<>&"'`]/g, '').trim().slice(0, 16); }
+
     function handleClientMessage(conn, data) {
+        if (!data || typeof data !== 'object') return;
+        lastSeen[conn.peer] = Date.now();
+        if (data.type === 'CHAT') {
+            let pl = gameState.players.find(x => x.id === conn.peer), now = Date.now();
+            if (!pl || now - (pl.lastChat || 0) < 700) return;
+            pl.lastChat = now;
+            addChat(pl.name, String(data.text || '').replace(/[<>&]/g, '').trim().slice(0, 200));
+            broadcastState();
+        }
         if (data.type === 'JOIN') {
-            gameState.players.push({ 
-                id: conn.peer, name: data.name, hp: gameState.settings.startHp, maxHp: gameState.settings.startHp, 
-                wins: 0, cards: [] 
-            });
+            if (gameState.players.some(p => p.id === conn.peer)) return;
+            let rj = gameState.phase !== 'LOBBY' && gameState.players.find(p => p.left && p.name === clean(data.name));
+            if (rj) {
+                let old = rj.id; rj.id = conn.peer; rj.left = false;
+                gameState.turnOrder = gameState.turnOrder.map(x => x === old ? rj.id : x);
+                gameState.initResults.forEach(r => { if (r.id === old) r.id = rj.id; });
+                if (gameState.roundWinnerId === old) gameState.roundWinnerId = rj.id;
+                addLog(`🔌 ${rj.name} is terug (doet mee vanaf de volgende ronde)`);
+                broadcastState();
+                return;
+            }
+            if (gameState.phase !== 'LOBBY' || gameState.players.length >= 8) {
+                conn.send({ type: 'REJECT', reason: gameState.phase !== 'LOBBY' ? 'Het spel is al bezig.' : 'De lobby is vol (max 8).' });
+                setTimeout(() => conn.close(), 300);
+                return;
+            }
+            let base = clean(data.name) || 'Speler', nm = base, n = 2;
+            while (gameState.players.some(p => p.name === nm)) nm = base + n++;
+            addChat('', nm + ' doet mee'); gameState.players.push({ id: conn.peer, name: nm, hp: gameState.settings.startHp, maxHp: gameState.settings.startHp, wins: 0, cards: [] });
             updateLobbyUI();
             broadcastState();
         }
-        if (data.type === 'PICK_CARD') {
-            let pId = gameState.cardPickQueue[gameState.pickerIndex];
-            let p = gameState.players.find(x => x.id === pId);
-            if (p && gameState.cardChoicesMap[pId]) {
-                p.cards.push(gameState.cardChoicesMap[pId][data.cardIndex]);
-            }
+        if (data.type === 'PICK_CARD' && gameState.phase === 'CARD_PICK' && gameState.cardPickQueue[gameState.pickerIndex] === conn.peer) {
+            let ch = gameState.cardChoicesMap[conn.peer], c = ch && ch[data.cardIndex];
+            let p = gameState.players.find(x => x.id === conn.peer);
+            if (!c || !p) return;
+            p.cards.push(c);
             advanceCardPick();
         }
-        if (data.type === 'ATTACK') {
-            performAttack(conn.peer, data.targetId);
-        }
-        if (data.type === 'RETURN_TO_LOBBY') {
-            returnToLobby();
-        }
+        if (data.type === 'DEFEND') performDefend(conn.peer);
+        if (data.type === 'REROLL') rerollFor(conn.peer);
+        if (data.type === 'ATTACK') performAttack(conn.peer, data.targetId, data.mode);
     }
 
     function updateLobbyUI() {
@@ -686,17 +729,66 @@
                 ${isHost && p.id !== myId ? `<button class="btn-kick" onclick="kickPlayer('${p.id}')">Kick</button>` : ''}
             </div>
         `).join('');
+        let log = document.getElementById('chat-log');
+        log.innerHTML = (gameState.chat || []).map(m => m.n ? `<div><b style="color:#f1c40f">${m.n}:</b> ${m.t}</div>` : `<div style="color:#888"><i>${m.t}</i></div>`).join('');
+        log.scrollTop = log.scrollHeight;
+    }
+
+    let timerKey = '', deadline = 0, localDeadline = 0, lastSeen = {};
+    function addChat(n, t) { (gameState.chat = gameState.chat || []).push({ n, t }); if (gameState.chat.length > 30) gameState.chat.shift(); }
+    function sendChat(sfx = '') {
+        let i = document.getElementById('chat-input' + sfx), t = i.value.replace(/[<>&]/g, '').trim().slice(0, 200);
+        if (!t) return;
+        i.value = '';
+        if (isHost) { addChat(myName, t); broadcastState(); }
+        else if (clientConn && clientConn.open) clientConn.send({ type: 'CHAT', text: t });
     }
 
     function broadcastState() {
-        hostConnections.forEach(conn => conn.send({ type: 'STATE_UPDATE', state: gameState }));
-        renderGameUI();
+        let key = [gameState.phase, gameState.turnIndex, gameState.pickerIndex, gameState.cardPickQueue.length, gameState.lastRoll ? gameState.lastRoll.id : 0].join('|');
+        if (key !== timerKey) {
+            timerKey = key;
+            let t = gameState.settings.turnTime;
+            deadline = t && (gameState.phase === 'TURN' || gameState.phase === 'CARD_PICK') ? Date.now() + t * 1000 : 0;
+        }
+        gameState.timeLeft = deadline ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : 0;
+        localDeadline = Date.now() + gameState.timeLeft * 1000;
+        hostConnections.forEach(conn => { if (conn.open) conn.send({ type: 'STATE_UPDATE', state: gameState }); });
+        if (gameState.phase === 'LOBBY') updateLobbyUI(); else renderGameUI();
+    }
+
+    function hostTick() {
+        let now = Date.now();
+        hostConnections.slice().forEach(c => { if (now - (lastSeen[c.peer] || now) > 90000) { try { c.close(); } catch (e) {} handleLeave(c.peer); } });
+        if (!gameState.settings.turnTime || !deadline || now < deadline || gameState.busy) return;
+        deadline = 0;
+        if (gameState.phase === 'TURN') {
+            let id = gameState.turnOrder[gameState.turnIndex], ts = gameState.players.filter(p => p.hp > 0 && p.id !== id);
+            if (ts.length) performAttack(id, ts[Math.floor(Math.random() * ts.length)].id);
+        } else if (gameState.phase === 'CARD_PICK') {
+            let id = gameState.cardPickQueue[gameState.pickerIndex], p = gameState.players.find(x => x.id === id), ch = gameState.cardChoicesMap[id];
+            if (p && ch) { p.cards.push(ch[Math.floor(Math.random() * ch.length)]); advanceCardPick(); }
+        }
+    }
+
+    function cardText(c) {
+        let l = [], ok = s => ['dmg', 'atk', 'hp', 'def'].includes(s);
+        for (let s in c.buffs) if (ok(s)) l.push(`<span style="color:#1e8449">+${Number(c.buffs[s])} ${s.toUpperCase()}</span>`);
+        for (let s in c.mults) if (ok(s)) l.push(`<span style="color:#b7950b">x${Number(c.mults[s])} ${s.toUpperCase()}</span>`);
+        for (let s in c.debuffs) if (ok(s)) l.push(`<span style="color:#c0392b">${Number(c.debuffs[s])} ${s.toUpperCase()}</span>`);
+        return l.join('<br>');
+    }
+    function previewText(p, c) {
+        if (!p) return '';
+        let a = calculatePlayerStats(p), b = calculatePlayerStats({ cards: p.cards.concat([c]) });
+        return ['hp', 'def', 'dmg', 'atk'].map(s => `${s.toUpperCase()} ${a[s]}→${b[s]}`).join(' · ');
     }
 
     function joinGame() {
-        myName = document.getElementById('username').value.trim();
-        let hostCode = document.getElementById('join-code').value.trim().toUpperCase();
-        if (!myName || !hostCode) return alert("Vul je naam en de host-code in!");
+        rejected = false; lastSeenRoll = 0;
+        myName = clean(document.getElementById('username').value); try{localStorage.setItem('brawlerName',myName)}catch(e){}
+        let hostCode = document.getElementById('join-code').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+        if (!myName || !hostCode) return setConnStatus("menu-conn-status","⚠️ Vul je naam en de host-code in!","error");
 
         setConnStatus("menu-conn-status", `⏳ Verbinden met lobby <strong>${hostCode}</strong>...`);
         if (peer) peer.destroy();
@@ -706,7 +798,7 @@
 
         joinTimeout = setTimeout(() => {
             if (!clientConn || !clientConn.open) {
-                setConnStatus("menu-conn-status", "❌ Verbinding duurt te lang (time-out). Controleer of de host nog in de lobby zit.", "error");
+                showScreen("screen-menu"); setConnStatus("menu-conn-status", "❌ Verbinding duurt te lang (time-out). Controleer of de host nog in de lobby zit.", "error");
             }
         }, 12000);
 
@@ -716,29 +808,25 @@
 
             clientConn.on('open', () => {
                 clearTimeout(joinTimeout);
-                setConnStatus("menu-conn-status", "✅ Verbonden!", "success");
+                setConnStatus("menu-conn-status", "✅ Verbonden!", "success"); reconnects = 0;
                 clientConn.send({ type: 'JOIN', name: myName });
+                setInterval(() => { if (clientConn.open) clientConn.send({ type: 'PING' }); }, 5000);
                 document.getElementById('display-code').innerText = hostCode;
                 document.getElementById('client-wait-msg').style.display = 'block';
                 showScreen('screen-lobby');
             });
 
+            clientConn.on('close', () => { if (rejected || isHost) return; if (gameState.phase !== 'LOBBY' && reconnects++ < 4) { setTimeout(joinGame, 1500); return; } showScreen('screen-menu'); setConnStatus('menu-conn-status', '❌ Verbinding met de host is verbroken.', 'error'); });
             clientConn.on('error', (err) => {
                 clearTimeout(joinTimeout);
                 setConnStatus("menu-conn-status", `❌ Verbinding mislukt (${err.type}).`, "error");
             });
 
             clientConn.on('data', (data) => {
+                if (data.type === 'REJECT') { rejected = true; showScreen('screen-menu'); setConnStatus('menu-conn-status', '❌ ' + data.reason, 'error'); return; }
                 if (data.type === 'STATE_UPDATE') {
-                    let oldHp = (gameState.players.find(p => p.id === myId) || {}).hp;
-                    gameState = data.state;
-                    let me = gameState.players.find(p => p.id === myId);
-
-                    if (oldHp !== undefined && me && me.hp < oldHp) {
-                        let killed = me.hp <= 0;
-                        triggerDamageEffect(me.hp - oldHp, false, myId, killed);
-                    }
-
+                    gameState = JSON.parse(JSON.stringify(data.state), (k, v) => typeof v !== 'string' ? v : (k === 't' ? v.replace(/[<>&]/g, '') : v.replace(/[<>&"'`\\]/g, '')));
+                    localDeadline = Date.now() + (gameState.timeLeft || 0) * 1000;
                     if (gameState.phase === 'LOBBY') {
                         showScreen('screen-lobby');
                         updateLobbyUI();
@@ -752,6 +840,7 @@
 
         peer.on('error', (err) => {
             clearTimeout(joinTimeout);
+            showScreen('screen-menu');
             if (err.type === 'peer-unavailable') {
                 setConnStatus("menu-conn-status", `❌ Lobby <strong>${hostCode}</strong> niet gevonden. Controleer de code.`, "error");
             } else {
@@ -761,16 +850,22 @@
     }
 
     function generateCardsForQueue() {
-        gameState.cardChoicesMap = {};
+        gameState.cardChoicesMap = {}; gameState.rerolled = {};
         let count = gameState.settings.cardCount || 3;
         gameState.cardPickQueue.forEach(pId => {
             let cards = [];
-            for (let i = 0; i < count; i++) cards.push(generateRandomCard());
+            for (let i = 0; i < count; i++) {
+                let c, t = 0;
+                do { c = generateRandomCard(); } while (cards.some(x => x.title === c.title) && ++t < 12);
+                cards.push(c);
+            }
             gameState.cardChoicesMap[pId] = cards;
         });
     }
 
     function hostStartGame() {
+        if (gameState.players.length < 2) return setConnStatus("lobby-conn-status", "⚠️ Je hebt minstens 2 spelers nodig om te starten.", "error");
+        gameState.log = []; gameState.lastRoll = null; gameState.busy = false;
         gameState.players.forEach(p => {
             p.wins = 0;
             p.cards = [];
@@ -789,6 +884,7 @@
     }
 
     function returnToLobby() {
+        if (isHost) gameState.players = gameState.players.filter(p => !p.left);
         gameState.phase = 'LOBBY';
         gameState.roundWinnerId = null;
         gameState.lastRoll = null;
@@ -813,10 +909,11 @@
     function startCombatPhase() {
         gameState.players.forEach(p => {
             let st = calculatePlayerStats(p);
-            p.hp = st.hp;
+            p.hp = p.left ? 0 : st.hp; p.pity = 0; p.guard = false;
             p.maxHp = st.hp;
         });
-        gameState.phase = 'TURN';
+        gameState.phase = 'TURN'; gameState.lastRoll = null;
+        setTimeout(() => { if (gameState.phase === 'TURN' && gameState.players.filter(p => p.hp > 0).length < 2) { checkRoundEnd(false); updateStatusBanner(); broadcastState(); } }, 50);
         
         let rolls = [];
         gameState.players.forEach(p => {
@@ -831,93 +928,163 @@
         gameState.turnIndex = 0;
         gameState.roundWinnerId = null;
 
-        while (gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0) {
+        while (gameState.players.some(p => p.hp > 0) && gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0) {
             gameState.turnIndex = (gameState.turnIndex + 1) % gameState.turnOrder.length;
         }
         updateStatusBanner();
     }
 
-    function performAttack(attackerId, targetId) {
-        let activePlayerId = gameState.turnOrder[gameState.turnIndex];
-        if (gameState.phase !== 'TURN' || attackerId !== activePlayerId) return; 
+    let reconnects = 0, rejected = false, lastSeenRoll = 0, rollSeq = 0, muted = false, AC = null, lastTurnKey = '', overPlayed = false;
 
+    function addLog(t) { (gameState.log = gameState.log || []).push(t); if (gameState.log.length > 6) gameState.log.shift(); }
+    function hitChance(a, t, heavy) { let need = (t.guard ? 4 : 0) + (heavy ? 3 : 0) + calculatePlayerStats(t).def - calculatePlayerStats(a).atk - (a.pity || 0); return Math.round(Math.min(20, Math.max(1, 21 - need)) * 5); }
+
+    function nextAlive() {
+        let n = gameState.turnOrder.length, i = 0;
+        do { gameState.turnIndex = (gameState.turnIndex + 1) % n; i++; }
+        while (i <= n && gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0);
+    }
+
+    function finishRound(winner) {
+        winner.wins++;
+        gameState.roundWinnerId = winner.id;
+        if (winner.wins >= gameState.settings.targetWins) {
+            gameState.phase = 'GAME_OVER';
+            gameState.statusMessage = `🎉 ${winner.name} HEEFT HET SPEL GEWONNEN! 🎉`;
+            return;
+        }
+        gameState.phase = 'CARD_PICK';
+        let rule = gameState.settings.cardRule, live = gameState.players.filter(p => !p.left);
+        gameState.cardPickQueue = rule === 'winner' ? [winner.id] : rule === 'all' ? live.map(p => p.id) : live.filter(p => p.id !== winner.id).map(p => p.id);
+        gameState.pickerIndex = 0;
+        gameState.statusMessage = `Ronde afgelopen! ${winner.name} wint deze ronde!`;
+        addLog(`🏆 ${winner.name} wint de ronde!`);
+        if (gameState.cardPickQueue.length) generateCardsForQueue(); else startCombatPhase();
+    }
+
+    function checkRoundEnd(advance) {
+        if (gameState.phase !== 'TURN') return;
+        let alive = gameState.players.filter(p => p.hp > 0);
+        if (alive.length === 0) gameState.phase = 'LOBBY';
+        else if (alive.length === 1) finishRound(alive[0]);
+        else if (advance || gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0) nextAlive();
+    }
+
+    function handleLeave(id) {
+        { let q = gameState.players.find(x => x.id === id); if (q && q.left) return; }
+        let p = gameState.players.find(x => x.id === id);
+        if (!p) return;
+        if (gameState.phase === 'LOBBY' || gameState.phase === 'GAME_OVER') {
+            if (gameState.phase === 'LOBBY') addChat('', p.name + ' is vertrokken');
+            gameState.players = gameState.players.filter(x => x.id !== id);
+        } else {
+            p.hp = 0; p.left = true;
+            addLog(`🚪 ${p.name} heeft het spel verlaten`);
+            if (gameState.phase === 'CARD_PICK') {
+                let q = gameState.cardPickQueue, qi = q.indexOf(id);
+                if (qi > -1) {
+                    q.splice(qi, 1);
+                    if (qi < gameState.pickerIndex) gameState.pickerIndex--;
+                    else if (qi === gameState.pickerIndex) { gameState.pickerIndex--; advanceCardPick(); }
+                }
+            } else checkRoundEnd(false);
+            updateStatusBanner();
+        }
+        updateLobbyUI();
+        broadcastState();
+    }
+
+    function performDefend(id) {
+        if (gameState.phase !== 'TURN' || gameState.busy || id !== gameState.turnOrder[gameState.turnIndex]) return;
+        let p = gameState.players.find(x => x.id === id);
+        if (!p || p.hp <= 0) return;
+        p.guard = true;
+        addLog(`🛡️ ${p.name} verdedigt (+4 AC tot de volgende beurt)`);
+        gameState.busy = true;
+        broadcastState();
+        setTimeout(() => { gameState.busy = false; checkRoundEnd(true); updateStatusBanner(); broadcastState(); }, 800);
+    }
+    function rerollFor(id) {
+        if (gameState.phase !== 'CARD_PICK' || gameState.cardPickQueue[gameState.pickerIndex] !== id || (gameState.rerolled || {})[id]) return;
+        let cnt = gameState.settings.cardCount || 3, cards = [];
+        for (let i = 0; i < cnt; i++) { let c, t = 0; do { c = generateRandomCard(); } while (cards.some(x => x.title === c.title) && ++t < 12); cards.push(c); }
+        gameState.cardChoicesMap[id] = cards;
+        (gameState.rerolled = gameState.rerolled || {})[id] = true;
+        broadcastState();
+    }
+    function performAttack(attackerId, targetId, mode) {
+        if (gameState.phase !== 'TURN' || gameState.busy || attackerId !== gameState.turnOrder[gameState.turnIndex]) return;
         let attacker = gameState.players.find(p => p.id === attackerId);
         let target = gameState.players.find(p => p.id === targetId);
+        if (!attacker || !target || target.id === attacker.id || target.hp <= 0 || attacker.hp <= 0) return;
 
-        let aStats = calculatePlayerStats(attacker);
-        let tStats = calculatePlayerStats(target);
-
+        let aStats = calculatePlayerStats(attacker), tStats = calculatePlayerStats(target);
         let roll = Math.floor(Math.random() * 20) + 1;
-        let isCrit = (roll === 20);
-        let total = roll + aStats.atk;
-        let hit = isCrit || (total >= tStats.def);
-
-        let damageDealt = aStats.dmg * (isCrit ? 2 : 1);
-        let wasKilled = false;
+        let isCrit = roll === 20;
+        let bonus = attacker.pity || 0, heavy = mode === 'heavy', def = tStats.def + (target.guard ? 4 : 0);
+        let hit = isCrit || (roll + aStats.atk + bonus - (heavy ? 3 : 0) >= def);
+        attacker.guard = false;
+        let dmg = Math.ceil(aStats.dmg * (heavy ? 1.5 : 1)) * (isCrit ? 2 : 1), killed = false;
+        attacker.pity = hit ? 0 : bonus + 1;
 
         if (hit) {
-            target.hp -= damageDealt;
-            if (target.hp <= 0) {
-                target.hp = 0;
-                wasKilled = true;
-            }
-            triggerDamageEffect(-damageDealt, isCrit, target.id, wasKilled);
+            target.hp = Math.max(0, target.hp - dmg);
+            killed = target.hp <= 0;
         }
-
-        gameState.lastRoll = {
-            attacker: attacker.name,
-            targetId: target.id,
-            roll: roll,
-            isCrit: isCrit,
-            hit: hit,
-            dmg: damageDealt
-        };
-
+        gameState.lastRoll = { id: ++rollSeq, attacker: attacker.name, targetId: target.id, roll, isCrit, hit, dmg, killed };
+        addLog(hit
+            ? `${isCrit ? '💥 CRIT! ' : '⚔️ '}${attacker.name} raakt ${target.name} voor ${dmg}${killed ? ' 💀' : ''} (🎲${roll}${aStats.atk ? (aStats.atk > 0 ? '+' : '') + aStats.atk : ''} vs AC ${def})`
+            : `💨 ${attacker.name} mist ${target.name} (🎲${roll}${aStats.atk ? (aStats.atk > 0 ? '+' : '') + aStats.atk : ''} vs AC ${def})`);
+        gameState.busy = true;
         broadcastState();
 
-        let animDelay = (gameState.settings.rollSpeed || 600) + 600;
         setTimeout(() => {
-            let alive = gameState.players.filter(p => p.hp > 0);
-            if (alive.length <= 1) {
-                let winner = alive[0];
-                if (winner) {
-                    winner.wins++;
-                    gameState.roundWinnerId = winner.id;
-                    
-                    if (winner.wins >= gameState.settings.targetWins) {
-                        gameState.phase = 'GAME_OVER';
-                        gameState.statusMessage = `🎉 ${winner.name} HEEFT HET SPEL GEWONNEN! 🎉`;
-                    } else {
-                        gameState.phase = 'CARD_PICK';
-                        
-                        let rule = gameState.settings.cardRule;
-                        if (rule === 'losers') {
-                            gameState.cardPickQueue = gameState.players.filter(p => p.id !== winner.id).map(p => p.id);
-                        } else if (rule === 'all') {
-                            gameState.cardPickQueue = gameState.players.map(p => p.id);
-                        } else if (rule === 'winner') {
-                            gameState.cardPickQueue = [winner.id];
-                        }
-
-                        gameState.pickerIndex = 0;
-                        gameState.statusMessage = `Ronde afgelopen! ${winner.name} wint deze ronde!`;
-                        
-                        if (gameState.cardPickQueue.length > 0) {
-                            generateCardsForQueue();
-                        } else {
-                            startCombatPhase();
-                        }
-                    }
-                }
-            } else {
-                do {
-                    gameState.turnIndex = (gameState.turnIndex + 1) % gameState.turnOrder.length;
-                } while (gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0);
-            }
-
+            gameState.busy = false;
+            checkRoundEnd(true);
             updateStatusBanner();
             broadcastState();
-        }, animDelay);
+        }, (gameState.settings.rollSpeed || 600) + 600);
+    }
+
+    function beep(f, d, type = 'square', v = 0.05) {
+        if (muted) return;
+        try {
+            AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+            if (AC.state === 'suspended') AC.resume();
+            let o = AC.createOscillator(), g = AC.createGain();
+            o.type = type; o.frequency.value = f; g.gain.value = v;
+            o.connect(g); g.connect(AC.destination); o.start();
+            g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + d);
+            o.stop(AC.currentTime + d);
+        } catch (e) {}
+    }
+    function toggleMute() { muted = !muted; document.getElementById('mute-btn').innerText = muted ? '🔇' : '🔊'; }
+    function copyLink() {
+        let url = location.href.split(/[?#]/)[0] + '?join=' + document.getElementById('display-code').innerText;
+        try { navigator.clipboard.writeText(url); setConnStatus('lobby-conn-status', '✅ Link gekopieerd!', 'success'); }
+        catch (e) { prompt('Kopieer deze link:', url); }
+    }
+    function popText(id, txt) {
+        let el = document.getElementById('player-card-' + id);
+        if (!el) return;
+        let p = document.createElement('div');
+        p.className = 'target-damage-pop miss-pop'; p.innerText = txt;
+        el.appendChild(p); setTimeout(() => p.remove(), 1200);
+    }
+    function onNewRoll(lr) {
+        document.getElementById('dice-area').style.display = 'block';
+        if (lr.id === lastSeenRoll) return;
+        lastSeenRoll = lr.id;
+        animateDice(lr);
+        if (lr.hit) triggerDamageEffect(-lr.dmg, lr.isCrit, lr.targetId, lr.killed);
+        else { popText(lr.targetId, 'MISS 💨'); beep(300, 0.2, 'sine'); }
+    }
+    function turnNotify(id) {
+        let mine = gameState.phase === 'TURN' && id === myId;
+        document.title = mine ? '🎯 Jouw beurt! – Brawler' : 'Brawler P2P Multiplayer';
+        let key = gameState.turnIndex + ':' + (gameState.lastRoll ? gameState.lastRoll.id : 0);
+        if (mine && key !== lastTurnKey) { lastTurnKey = key; beep(520, 0.15, 'triangle', 0.08); setTimeout(() => beep(780, 0.2, 'triangle', 0.08), 140); }
+        if (gameState.phase !== 'GAME_OVER') overPlayed = false;
     }
 
     function updateStatusBanner() {
@@ -933,6 +1100,7 @@
     }
 
     function triggerDamageEffect(dmgValue, isCrit, targetPlayerId, wasKilled) {
+        beep(wasKilled ? 110 : isCrit ? 880 : 200, wasKilled ? 0.5 : 0.15, 'sawtooth', 0.07);
         document.body.classList.add('flash-damage');
         if (isCrit || wasKilled) document.body.classList.add('shake');
         setTimeout(() => {
@@ -1005,15 +1173,18 @@
         }
 
         document.getElementById('status-banner').innerText = gameState.statusMessage || "Spel bezig...";
+        { let cg = document.getElementById('chat-log-g'); cg.innerHTML = (gameState.chat || []).map(m => m.n ? `<div><b style="color:#f1c40f">${m.n}:</b> ${m.t}</div>` : `<div style="color:#888"><i>${m.t}</i></div>`).join(''); cg.scrollTop = cg.scrollHeight; }
+        document.getElementById('combat-log').innerHTML = (gameState.log || []).slice().reverse().map((l, i) => `<div style="opacity:${1 - i * 0.15}">${l}</div>`).join('');
 
         let activeTurnPlayerId = gameState.turnOrder ? gameState.turnOrder[gameState.turnIndex] : null;
+        turnNotify(activeTurnPlayerId);
         document.getElementById('game-players-list').innerHTML = gameState.players.map(p => {
             let st = calculatePlayerStats(p);
             return `
             <div id="player-card-${p.id}" class="player-card ${p.hp <= 0 ? 'dead' : ''} ${gameState.phase === 'TURN' && activeTurnPlayerId === p.id ? 'active-turn' : ''}" onclick="viewPlayerCards('${p.id}')">
                 <span class="turn-badge">Aan de beurt</span>
-                <strong>${p.name}</strong><br>
-                ❤️ HP: ${p.hp}/${st.hp}<br>
+                <strong>${p.name}</strong>${p.left ? ' (vertrokken)' : ''}${p.guard ? ' 🛡️' : ''}<br>
+                ❤️ ${p.hp}/${st.hp} · 🏆 ${p.wins}<div class="hpbar"><i style="width:${Math.max(0, p.hp / st.hp * 100)}%"></i></div>
                 🛡️ AC: ${st.def}
             </div>
             `;
@@ -1021,7 +1192,7 @@
 
         const diceArea = document.getElementById('dice-area');
         if (gameState.phase === 'TURN' && gameState.lastRoll) {
-            animateDice(gameState.lastRoll);
+            onNewRoll(gameState.lastRoll);
         } else {
             diceArea.style.display = 'none';
         }
@@ -1033,7 +1204,7 @@
             let choices = gameState.cardChoicesMap[activePickerId] || [];
             
             if (activePickerId === myId) {
-                let html = `<h3>Kies 1 kaart om je stats te upgraden:</h3><div class="card-selection">`;
+                let html = `<h3>Kies 1 kaart om je stats te upgraden:</h3>${(gameState.rerolled || {})[myId] ? '' : '<button onclick="sendReroll()">🔄 Herrol kaarten (1x)</button>'}<div class="card-selection">`;
                 choices.forEach((c, idx) => {
                     let vTag = c.variant !== 'None' ? `<span class="variant-tag tag-${c.variant}">${c.variant}</span>` : '';
                     html += `
@@ -1042,7 +1213,7 @@
                         <div class="card-rarity-bar">${c.rarity}</div>
                         <div class="card-title">${c.title}</div>
                         <div class="card-icon">${c.icon}</div>
-                        <div class="card-stats">${c.statText}</div>
+                        <div class="card-stats">${cardText(c)}</div><div style="font-size:12px;margin-top:4px;text-align:center">${previewText(me, c)}</div>
                     </div>`;
                 });
                 html += `</div>`;
@@ -1056,10 +1227,10 @@
                 if (me.hp <= 0) {
                     actionArea.innerHTML = `<h3>Je bent uitgeschakeld deze ronde! Wacht op de volgende ronde.</h3>`;
                 } else {
-                    let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3><div class="attack-buttons-grid">`;
+                    let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3><button ${attackCooldownActive ? 'disabled' : ''} onclick="sendDefend()" style="background:#2980b9">🛡️ Verdedigen (+4 AC)</button><div class="attack-buttons-grid">`;
                     gameState.players.forEach(p => {
                         if (p.id !== myId && p.hp > 0) {
-                            html += `<button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}')">${attackCooldownActive ? 'Cooldown...' : 'Val ' + p.name + ' aan'}</button>`;
+                            html += `<button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}','normal')">${attackCooldownActive ? 'Cooldown...' : 'Val ' + p.name + ' aan (' + hitChance(me, p) + '% kans)'}</button><button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}','heavy')" style="background:#8e44ad">${attackCooldownActive ? '...' : '🔨 Zwaar (' + hitChance(me, p, true) + '%, x1.5 dmg)'}</button>`;
                         }
                     });
                     html += `</div>`;
@@ -1070,6 +1241,7 @@
                 actionArea.innerHTML = `<h3>Het is de beurt van <strong>${activeP ? activeP.name : 'iemand'}</strong>...</h3>`;
             }
         } else if (gameState.phase === 'GAME_OVER') {
+            if (!overPlayed) { overPlayed = true; [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.25, 'triangle', 0.08), i * 150)); }
             let html = `<h2 style="color:#f1c40f; text-align:center;">${gameState.statusMessage}</h2>`;
             if (isHost) {
                 html += `<div style="text-align:center;"><button class="menu-btn" onclick="returnToLobby()">Play Again (Terug naar Lobby & Settings)</button></div>`;
@@ -1080,26 +1252,20 @@
         }
     }
 
-    function animateDice(lastRoll) {
-        const area = document.getElementById('dice-area');
+    function animateDice(lr) {
         const dice = document.getElementById('dice');
-
-        area.style.display = 'block';
-        dice.classList.add('rolling');
-        dice.classList.remove('crit');
-
-        let speed = gameState.settings.rollSpeed || 600;
-
+        dice.classList.add('rolling'); dice.classList.remove('crit');
+        let iv = setInterval(() => { dice.innerText = 1 + Math.floor(Math.random() * 20); }, 70);
         setTimeout(() => {
+            clearInterval(iv);
             dice.classList.remove('rolling');
-            dice.innerText = lastRoll.roll;
-            if (lastRoll.isCrit) {
-                dice.classList.add('crit');
-            }
-        }, speed);
+            dice.innerText = lr.roll;
+            if (lr.isCrit) dice.classList.add('crit');
+        }, gameState.settings.rollSpeed || 600);
     }
 
     function selectCard(idx) {
+        beep(600, 0.12, 'triangle', 0.08);
         if (isHost) {
             let pId = gameState.cardPickQueue[gameState.pickerIndex];
             let p = gameState.players.find(x => x.id === pId);
@@ -1112,7 +1278,14 @@
         }
     }
 
-    function sendAttack(targetId) {
+    function sendDefend() {
+        if (attackCooldownActive) return;
+        attackCooldownActive = true; renderGameUI();
+        setTimeout(() => { attackCooldownActive = false; renderGameUI(); }, 1500);
+        if (isHost) performDefend(myId); else clientConn.send({ type: 'DEFEND' });
+    }
+    function sendReroll() { if (isHost) rerollFor(myId); else clientConn.send({ type: 'REROLL' }); }
+    function sendAttack(targetId, mode) {
         if (attackCooldownActive) return; 
         
         attackCooldownActive = true;
@@ -1124,9 +1297,9 @@
         }, 1500);
 
         if (isHost) {
-            performAttack(myId, targetId);
+            performAttack(myId, targetId, mode);
         } else {
-            clientConn.send({ type: 'ATTACK', targetId: targetId });
+            clientConn.send({ type: 'ATTACK', targetId: targetId, mode: mode });
         }
     }
 
@@ -1153,16 +1326,31 @@
             container.innerHTML = player.cards.map(c => `
                 <div style="background:#1e1e24; padding:10px; margin:6px 0; border-radius:6px; border-left:4px solid ${c.rarity === 'Legendary' ? '#f1c40f' : '#3498db'};">
                     <strong>${c.rarity} ${c.variant !== 'None' ? `(${c.variant})` : ''}</strong> - ${c.title}<br>
-                    ${c.statText}
+                    ${cardText(c)}
                 </div>
             `).join('');
         }
+        document.getElementById('modal-host-actions').innerHTML = (isHost && player.id !== myId)
+            ? `<button class="btn-kick" onclick="kickPlayer('${player.id}');closeModal()">Kick</button>` + (gameState.phase === 'TURN' && gameState.turnOrder[gameState.turnIndex] === player.id ? `<button class="btn-kick" onclick="skipTurn();closeModal()">Beurt overslaan</button>` : '') : '';
         document.getElementById('player-modal').style.display = 'flex';
     }
 
     function closeModal() {
         document.getElementById('player-modal').style.display = 'none';
     }
+(function () {
+        try { let n = localStorage.getItem('brawlerName'); if (n) document.getElementById('username').value = n; } catch (e) {}
+        let j = new URLSearchParams(location.search).get('join');
+        if (j) document.getElementById('join-code').value = j.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    })();
+document.addEventListener('pointerdown', () => { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); } catch (e) {} }, { once: true });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && clientConn && clientConn.open) clientConn.send({ type: 'PING' }); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    setInterval(() => {
+        let el = document.getElementById('timer-badge');
+        if (!el) return;
+        el.innerText = (gameState.timeLeft > 0 && (gameState.phase === 'TURN' || gameState.phase === 'CARD_PICK')) ? '⏱️ ' + Math.max(0, Math.ceil((localDeadline - Date.now()) / 1000)) + 's' : '';
+    }, 500);
 </script>
 </body>
 </html>
