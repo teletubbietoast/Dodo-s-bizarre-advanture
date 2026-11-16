@@ -59,7 +59,7 @@
         .round-banner.lose { background: #c0392b; color: #fff; border: 2px solid #e74c3c; }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* --- NIEUWE KAART STIJL (GELEERD VAN AFBEELDING) --- */
+        /* --- KAART STIJL --- */
         .card-selection { display: flex; gap: 20px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
         
         .game-card {
@@ -99,31 +99,31 @@
         }
 
         .card-title {
-            font-size: 24px;
+            font-size: 21px;
             font-weight: 800;
             margin-top: 5px;
             text-align: center;
             color: #000;
+            line-height: 1.1;
         }
 
         .card-icon {
-            font-size: 55px;
-            margin: 10px 0;
+            font-size: 52px;
+            margin: 6px 0;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .card-stats {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             text-align: center;
             color: #000;
-            margin-bottom: 10px;
-            line-height: 1.3;
+            margin-bottom: 8px;
+            line-height: 1.25;
         }
 
-        /* Rarities / Variants Accentering op de Kaart */
         .rarity-Common { background: #dcdcdc; }
         .rarity-Uncommon { background: #d4edda; border-color: #2ecc71; }
         .rarity-Rare { background: #d0e1f9; border-color: #3498db; }
@@ -326,84 +326,105 @@
         return stats;
     }
 
-    // --- KAART GENERATOR MET ICONEN EN STIJL VOORBEELD ---
+    // --- UITGEBREIDE KAARTEN POOL (VEEL VARIATIE, X ALLEEN LEGENDARY MAX X2) ---
+    const CARD_TEMPLATES = {
+        Common: [
+            { title: "Strike", icon: "⚡", buffs: { dmg: 1 }, debuffs: {}, mults: {} },
+            { title: "Focus", icon: "🎯", buffs: { atk: 1 }, debuffs: {}, mults: {} },
+            { title: "Vitality", icon: "❤️", buffs: { hp: 3 }, debuffs: {}, mults: {} },
+            { title: "Toughness", icon: "🫀", buffs: { hp: 2 }, debuffs: {}, mults: {} },
+            { title: "Guard", icon: "🛡️", buffs: { def: 1 }, debuffs: {}, mults: {} },
+            { title: "Skirmisher", icon: "🗡️", buffs: { dmg: 1, atk: 1 }, debuffs: { hp: -1 }, mults: {} },
+            { title: "Footwork", icon: "👟", buffs: { def: 1, atk: 1 }, debuffs: { dmg: -1 }, mults: {} },
+            { title: "Stalwart", icon: "🧱", buffs: { hp: 2, def: 1 }, debuffs: { atk: -1 }, mults: {} }
+        ],
+        Uncommon: [
+            { title: "Heavy Blow", icon: "🔨", buffs: { dmg: 2 }, debuffs: { atk: -1 }, mults: {} },
+            { title: "Power Cleave", icon: "🪓", buffs: { dmg: 3 }, debuffs: { def: -2 }, mults: {} },
+            { title: "Eagle Eye", icon: "🦅", buffs: { atk: 3 }, debuffs: { hp: -2 }, mults: {} },
+            { title: "Precision", icon: "🏹", buffs: { atk: 2 }, debuffs: { dmg: -1 }, mults: {} },
+            { title: "Iron Skin", icon: "🪨", buffs: { hp: 5 }, debuffs: { atk: -2 }, mults: {} },
+            { title: "Endurance", icon: "🔋", buffs: { hp: 4 }, debuffs: { def: -1 }, mults: {} },
+            { title: "Shield Wall", icon: "🏰", buffs: { def: 2 }, debuffs: { dmg: -1 }, mults: {} },
+            { title: "Duelist", icon: "🤺", buffs: { atk: 2, def: 1 }, debuffs: { hp: -2 }, mults: {} },
+            { title: "Bruiser", icon: "🥊", buffs: { dmg: 2, hp: 3 }, debuffs: { def: -2 }, mults: {} },
+            { title: "Reckless", icon: "🔥", buffs: { dmg: 2, atk: 2 }, debuffs: { def: -2 }, mults: {} }
+        ],
+        Rare: [
+            { title: "Executioner", icon: "⚔️", buffs: { dmg: 5 }, debuffs: { def: -3 }, mults: {} },
+            { title: "Sniper", icon: "🔭", buffs: { atk: 5 }, debuffs: { hp: -3 }, mults: {} },
+            { title: "Juggernaut", icon: "🦣", buffs: { hp: 9 }, debuffs: { atk: -3 }, mults: {} },
+            { title: "Fortress", icon: "🏯", buffs: { def: 4 }, debuffs: { dmg: -2 }, mults: {} },
+            { title: "Glass Cannon", icon: "💥", buffs: { dmg: 4, atk: 3 }, debuffs: { hp: -4, def: -2 }, mults: {} },
+            { title: "Ironclad", icon: "🤖", buffs: { hp: 7, def: 3 }, debuffs: { atk: -4 }, mults: {} },
+            { title: "Assassin", icon: "🗡️", buffs: { dmg: 4, atk: 4 }, debuffs: { hp: -4 }, mults: {} },
+            { title: "Bastion", icon: "🛡️", buffs: { hp: 8, def: 2 }, debuffs: { dmg: -2 }, mults: {} }
+        ],
+        Legendary: [
+            { title: "Double Trouble", icon: "⚡", buffs: {}, debuffs: { def: -4 }, mults: { dmg: 2 } },
+            { title: "Titan's Blood", icon: "👑", buffs: {}, debuffs: { atk: -4 }, mults: { hp: 2 } },
+            { title: "Deadeye", icon: "👁️", buffs: {}, debuffs: { hp: -4 }, mults: { atk: 2 } },
+            { title: "Aegis", icon: "🔰", buffs: {}, debuffs: { dmg: -3 }, mults: { def: 2 } },
+            { title: "Berserker", icon: "👹", buffs: { dmg: 8 }, debuffs: { def: -4 }, mults: {} },
+            { title: "Grandmaster", icon: "🎯", buffs: { atk: 8 }, debuffs: { hp: -4 }, mults: {} },
+            { title: "Colossus", icon: "🗿", buffs: { hp: 14 }, debuffs: { atk: -4 }, mults: {} },
+            { title: "Invincible", icon: "💎", buffs: { def: 5 }, debuffs: { dmg: -3 }, mults: {} },
+            { title: "Warlord", icon: "🏆", buffs: { dmg: 6, hp: 10 }, debuffs: { def: -3 }, mults: {} }
+        ]
+    };
+
     function generateRandomCard() {
         let randRarity = Math.random() * 100;
         let rarity = 'Common';
-        if (randRarity > 98) rarity = 'Legendary';
-        else if (randRarity > 90) rarity = 'Rare';
-        else if (randRarity > 65) rarity = 'Uncommon';
+        // Legendaries zeldzamer gemaakt (0.8% kans)
+        if (randRarity > 99.2) rarity = 'Legendary';
+        else if (randRarity > 91.2) rarity = 'Rare';
+        else if (randRarity > 66.2) rarity = 'Uncommon';
 
         let variant = 'None';
         if (rarity !== 'Legendary' && Math.random() * 100 < 5) {
             variant = Math.random() < 0.5 ? 'Blessed' : 'Cursed';
         }
 
-        let card = { rarity, variant, buffs: {}, debuffs: {}, mults: {}, title: "", icon: "⚡" };
+        let pool = CARD_TEMPLATES[rarity];
+        let template = pool[Math.floor(Math.random() * pool.length)];
+
+        // Diepe kopie maken zodat template niet aangepast wordt
+        let card = {
+            rarity: rarity,
+            variant: variant,
+            title: template.title,
+            icon: template.icon,
+            buffs: Object.assign({}, template.buffs),
+            debuffs: Object.assign({}, template.debuffs),
+            mults: Object.assign({}, template.mults)
+        };
+
         const statNames = ['dmg', 'atk', 'hp', 'def'];
-        let chosenStat = statNames[Math.floor(Math.random() * statNames.length)];
-
-        // Icoontjes op basis van stat
-        const icons = { dmg: "⚡", atk: "🎯", hp: "❤️", def: "🛡️" };
-        const titles = { dmg: "Strike", atk: "Focus", hp: "Vitality", def: "Guard" };
-
-        card.icon = icons[chosenStat];
-        card.title = titles[chosenStat];
-
-        if (rarity === 'Common') {
-            let val = (chosenStat === 'hp') ? 3 : 1;
-            card.buffs[chosenStat] = val;
-        } 
-        else if (rarity === 'Uncommon') {
-            let val = (chosenStat === 'hp') ? 4 : ((chosenStat === 'def') ? 2 : 2);
-            card.buffs[chosenStat] = val;
-            let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            card.debuffs[debuffStat] = -Math.ceil(val / 2);
-        }
-        else if (rarity === 'Rare') {
-            let isMult = (chosenStat === 'hp' || chosenStat === 'dmg') && Math.random() < 0.3;
-            if (isMult) {
-                card.mults[chosenStat] = 2;
-                card.title = chosenStat === 'hp' ? "Titan" : "Overpower";
-            } else {
-                let val = (chosenStat === 'hp') ? 8 : ((chosenStat === 'def') ? 3 : 5);
-                card.buffs[chosenStat] = val;
-            }
-            let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            card.debuffs[debuffStat] = -3;
-        }
-        else if (rarity === 'Legendary') {
-            let isMult = Math.random() < 0.4;
-            if (isMult) {
-                card.mults[chosenStat] = 3;
-                card.title = "Godlike";
-            } else {
-                let val = (chosenStat === 'hp') ? 14 : ((chosenStat === 'def') ? 4 : 8);
-                card.buffs[chosenStat] = val;
-            }
-            let debuffStat = statNames.filter(s => s !== chosenStat)[Math.floor(Math.random() * 3)];
-            card.debuffs[debuffStat] = -4;
-        }
 
         if (variant === 'Blessed') {
             for (let s in card.buffs) card.buffs[s] = Math.ceil(card.buffs[s] * 1.5);
-            for (let s in card.mults) card.mults[s] += 1;
+            // Multipliers blijven strikt max x2
+            for (let s in card.mults) card.mults[s] = Math.min(2, card.mults[s]);
         }
         if (variant === 'Cursed') {
             for (let s in card.buffs) card.buffs[s] *= 2;
             for (let s in card.debuffs) card.debuffs[s] *= 2;
-            for (let s in card.mults) card.mults[s] *= 2;
+            // Multipliers blijven strikt max x2
+            for (let s in card.mults) card.mults[s] = Math.min(2, card.mults[s]);
+            
             if (Object.keys(card.debuffs).length === 0) {
-                let dStat = statNames.filter(s => s !== chosenStat)[0];
+                let buffedStats = Object.keys(card.buffs).concat(Object.keys(card.mults));
+                let availableDebuffs = statNames.filter(s => !buffedStats.includes(s));
+                let dStat = availableDebuffs[Math.floor(Math.random() * availableDebuffs.length)] || 'def';
                 card.debuffs[dStat] = -2;
             }
         }
 
-        // Formatteer de tekst in het exacte formaat "+1 DMG"
         let lines = [];
-        for (let s in card.buffs) lines.push(`+${card.buffs[s]} ${s.toUpperCase()}`);
-        for (let s in card.mults) lines.push(`x${card.mults[s]} ${s.toUpperCase()}`);
-        for (let s in card.debuffs) lines.push(`${card.debuffs[s]} ${s.toUpperCase()}`);
+        for (let s in card.buffs) lines.push(`<span style="color:#1e8449">+${card.buffs[s]} ${s.toUpperCase()}</span>`);
+        for (let s in card.mults) lines.push(`<span style="color:#b7950b">x${card.mults[s]} ${s.toUpperCase()}</span>`);
+        for (let s in card.debuffs) lines.push(`<span style="color:#c0392b">${card.debuffs[s]} ${s.toUpperCase()}</span>`);
         card.statText = lines.join('<br>');
 
         return card;
@@ -810,7 +831,6 @@
 
         const actionArea = document.getElementById('game-action-area');
 
-        // --- KAARTKEUZE MET DE NIEUWE STIJL ---
         if (gameState.phase === 'CARD_PICK') {
             let activePickerId = gameState.cardPickQueue[gameState.pickerIndex];
             let choices = gameState.cardChoicesMap[activePickerId] || [];
