@@ -271,6 +271,7 @@
 .miss-pop{color:#95a5a6!important;font-size:22px!important}
 #mute-btn{position:absolute;top:12px;right:12px;margin:0;padding:6px 10px;min-height:36px;background:#3a3a4c}
 .game-card.rarity-Rare{box-shadow:0 0 12px #3498db}
+.modal{z-index:100!important}
 </style>
 </head>
 <body>
@@ -399,10 +400,8 @@
     </div>
 </div>
 
-<button id="admin-fab" onclick="openAdminPanel()" style="display:none;position:fixed;bottom:16px;right:16px;z-index:40;width:auto;border-radius:30px;background:#e67e22;padding:12px 18px;box-shadow:0 4px 12px rgba(0,0,0,.5)">🛠️ Admin panel</button>
-<div id="admin-panel" class="modal" onclick="if(event.target === this) closeAdminPanel()">
-    <div class="modal-content" id="admin-panel-body"></div>
-</div>
+<button id="admin-fab" onclick="toggleAdminPanel()" style="display:none;position:fixed;right:0;top:38%;z-index:70;width:auto;writing-mode:vertical-rl;border-radius:10px 0 0 10px;background:#e67e22;padding:14px 8px;box-shadow:-2px 2px 8px rgba(0,0,0,.5);transition:right .2s">🛠️ ADMIN</button>
+<div id="admin-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(380px,92vw);z-index:60;background:#2b2b36;overflow-y:auto;padding:14px;box-shadow:-4px 0 16px rgba(0,0,0,.6);box-sizing:border-box"><div id="admin-panel-body"></div></div>
 
 <div id="player-modal" class="modal" onclick="if(event.target === this) closeModal()">
     <div class="modal-content">
@@ -767,6 +766,12 @@
             if (!c || !p) return;
             p.cards.push(c);
             advanceCardPick();
+        }
+        if (data.type === 'ADMIN') {
+            let s = gameState.players.find(x => x.id === conn.peer), a = data.a;
+            if (!s || !s.admin || !gameState.customMode || !a || typeof a !== 'object') return;
+            if (data.fn === 'all') execAll(String(a.kind));
+            else if (data.fn === 'player' && a.k !== 'grant') execPlayer(String(a.id), String(a.k), a.v, a.x);
         }
         if (data.type === 'DEFEND') performDefend(conn.peer);
         if (data.type === 'REROLL') rerollFor(conn.peer);
@@ -1362,59 +1367,84 @@
     }
 
     // ================= HOST ADMIN / CUSTOM MODE =================
+    let admTarget = '', admCat = false, modalPid = '';
+    function isAdmin() { return isHost || ((gameState.players.find(p => p.id === myId) || {}).admin === true); }
     function toggleCustom() {
         if (!isHost) return;
         gameState.customMode = !gameState.customMode;
-        addLog(gameState.customMode ? '🛠️ Admin modus AAN: de host kan stats en kaarten aanpassen' : '🛠️ Admin modus UIT');
+        addLog(gameState.customMode ? '🛠️ Admin modus AAN' : '🛠️ Admin modus UIT');
         broadcastState();
+    }
+    function toggleAdminPanel() { document.getElementById('admin-panel').style.display === 'block' ? closeAdminPanel() : openAdminPanel(); }
+    function openAdminPanel() {
+        if (!isAdmin() || !(isHost || gameState.customMode)) return;
+        document.getElementById('admin-panel').style.display = 'block';
+        document.getElementById('admin-fab').style.right = 'min(380px,92vw)';
+        renderAdminPanel();
+    }
+    function closeAdminPanel() {
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('admin-fab').style.right = '0';
     }
     function renderAdminBar() {
-        let b = document.getElementById('admin-bar'), c = gameState.customMode, inGame = gameState.phase !== 'LOBBY';
-        if (!isHost) {
-            document.getElementById('admin-fab').style.display = 'none';
-            b.style.display = (c || gameState.paused) ? 'block' : 'none';
-            b.innerHTML = `<div style="color:#e67e22">${c ? '🛠️ Admin modus actief: de host kan stats en kaarten aanpassen. ' : ''}${gameState.paused ? '⏸️ Gepauzeerd door de host' : ''}</div>`;
-            return;
+        let c = gameState.customMode, adm = isAdmin(), show = isHost || (c && adm);
+        let fab = document.getElementById('admin-fab'), b = document.getElementById('admin-bar');
+        fab.style.display = show ? 'block' : 'none';
+        fab.innerText = '🛠️ ADMIN' + (isHost ? (c ? ' (aan)' : ' (uit)') : '');
+        if (!show && document.getElementById('admin-panel').style.display === 'block') closeAdminPanel();
+        b.style.display = (!adm && (c || gameState.paused)) ? 'block' : 'none';
+        b.innerHTML = `<div style="color:#e67e22">${c ? '🛠️ Admin modus actief. ' : ''}${gameState.paused ? '⏸️ Gepauzeerd door de host' : ''}</div>`;
+        let ae = document.activeElement, typing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT');
+        if (!typing) {
+            renderAdminPanel();
+            if (modalPid && document.getElementById('player-modal').style.display === 'flex') viewPlayerCards(modalPid);
         }
-        document.getElementById('admin-fab').style.display = c ? 'block' : 'none';
-        const t = (k, l) => `<button onclick="adminAll('${k}')" style="width:auto;display:inline-block;margin:2px">${l}</button>`;
-        b.style.display = 'block';
-        b.innerHTML = `<button onclick="toggleCustom()" style="width:auto;display:inline-block;margin:2px;background:${c ? '#e67e22' : '#3a3a4c'}">🛠️ Admin modus: ${c ? 'AAN' : 'UIT'}</button>`
-            + (c && inGame ? t('heal', '❤️ Genees iedereen') + t('card', '🎁 Kaart voor iedereen') + t('clear', '🗑️ Wis alle kaarten') + t('restart', '🔄 Ronde herstarten') + t('pause', gameState.paused ? '▶️ Hervat' : '⏸️ Pauze') : '')
-            + (c ? `<button onclick="openAdminPanel()" style="width:auto;display:inline-block;margin:2px;background:#e67e22">🛠️ Admin panel</button><div style="font-size:12px;color:#aaa">${inGame ? 'Of klik op een speler voor zijn details.' : 'Deel alvast kaarten en stats uit: ze blijven behouden bij de start.'}</div>` : '');
     }
-    function adminDone(id) {
-        if (gameState.phase !== 'LOBBY') updateStatusBanner();
-        broadcastState();
-        if (id && document.getElementById('player-modal').style.display === 'flex') viewPlayerCards(id);
-        renderAdminPanel();
-    }
-    function openAdminPanel() {
-        if (!isHost || !gameState.customMode) return;
-        document.getElementById('admin-panel').style.display = 'flex';
-        renderAdminPanel();
-    }
-    function closeAdminPanel() { document.getElementById('admin-panel').style.display = 'none'; }
     function renderAdminPanel() {
         let el = document.getElementById('admin-panel');
-        if (el.style.display !== 'flex') return;
-        if (!isHost || !gameState.customMode) { closeAdminPanel(); return; }
-        let inGame = gameState.phase !== 'LOBBY';
-        const g = (k, l) => `<button onclick="adminAll('${k}')" style="width:auto;display:inline-block;margin:2px">${l}</button>`;
-        const b = (id, k, v, l) => `<button onclick="adminPlayer('${id}','${k}',${v})" style="width:auto;display:inline-block;margin:2px;padding:6px 10px;min-height:32px">${l}</button>`;
-        let rows = gameState.players.map(p => {
-            let st = calculatePlayerStats(p);
-            return `<div style="background:#1e1e24;border-radius:8px;padding:8px;margin:6px 0"><b>${p.name}${p.left ? ' (weg)' : ''}</b> ❤️${p.hp}/${st.hp} 🏆${p.wins} 🃏${p.cards.length}<br>`
-                + b(p.id, 'hp', 1, '❤️+') + b(p.id, 'hp', -1, '❤️-') + b(p.id, 'wins', 1, '🏆+') + b(p.id, 'wins', -1, '🏆-') + b(p.id, 'rand', 0, '🎁')
-                + (inGame ? b(p.id, 'revive', 0, '✨') + b(p.id, 'kill', 0, '💀') + (gameState.phase === 'TURN' ? b(p.id, 'win', 0, '🥇') : '') : '')
-                + `<button onclick="viewPlayerCards('${p.id}')" style="width:auto;display:inline-block;margin:2px;padding:6px 10px;min-height:32px">⚙️ Kaarten & eigen kaart</button></div>`;
+        if (el.style.display !== 'block') return;
+        let c = gameState.customMode, inGame = gameState.phase !== 'LOBBY';
+        const bt = (js, l, st) => `<button onclick="${js}" style="width:auto;display:inline-block;margin:2px;padding:6px 10px;min-height:32px;${st || ''}">${l}</button>`;
+        let out = `<div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🛠️ Admin</h3>${bt('closeAdminPanel()', '✖')}</div>`;
+        if (isHost) out += bt('toggleCustom()', `Admin modus: ${c ? 'AAN' : 'UIT'}`, `background:${c ? '#e67e22' : '#3a3a4c'}`);
+        if (!c) { document.getElementById('admin-panel-body').innerHTML = out + '<p style="color:#aaa">Admin modus staat uit. Zet hem aan om kaarten, stats en admin-rechten uit te delen.</p>'; return; }
+        out += '<div>' + bt("adminAll('card')", '🎁 Kaart voor iedereen') + bt("adminAll('clear')", '🗑️ Wis alle kaarten')
+            + (inGame ? bt("adminAll('heal')", '❤️ Genees iedereen') + bt("adminAll('restart')", '🔄 Ronde herstarten') + bt("adminAll('pause')", gameState.paused ? '▶️ Hervat' : '⏸️ Pauze') : '') + '</div>';
+        out += gameState.players.map(p => {
+            let st = calculatePlayerStats(p), id = p.id, q = (k, v, l) => bt(`adminPlayer('${id}','${k}',${v})`, l);
+            return `<div style="background:#1e1e24;border-radius:8px;padding:8px;margin:6px 0"><b>${p.admin ? '👑 ' : ''}${p.name}${p.left ? ' (weg)' : ''}</b> ❤️${p.hp}/${st.hp} 🏆${p.wins} 🃏${p.cards.length}<br>`
+                + q('hp', 1, '❤️+') + q('hp', -1, '❤️-') + q('wins', 1, '🏆+') + q('wins', -1, '🏆-') + q('rand', 0, '🎁')
+                + (inGame ? q('revive', 0, '✨') + q('kill', 0, '💀') + (gameState.phase === 'TURN' ? q('win', 0, '🥇') : '') : '')
+                + bt(`viewPlayerCards('${id}')`, '⚙️ Details')
+                + (isHost && id !== myId ? q('grant', 0, p.admin ? '👑 Admin afnemen' : '👑 Admin geven') : '') + '</div>';
         }).join('');
-        document.getElementById('admin-panel-body').innerHTML = `<h3>🛠️ Admin panel</h3>`
-            + g('card', '🎁 Kaart voor iedereen') + g('clear', '🗑️ Wis alle kaarten')
-            + (inGame ? g('heal', '❤️ Genees iedereen') + g('restart', '🔄 Ronde herstarten') + g('pause', gameState.paused ? '▶️ Hervat' : '⏸️ Pauze') : '')
-            + rows + `<br><button class="menu-btn" onclick="closeAdminPanel()">Sluiten</button>`;
+        let live = gameState.players.filter(p => !p.left);
+        if (!live.some(p => p.id === admTarget)) admTarget = live.length ? live[0].id : '';
+        out += `<details ${admCat ? 'open' : ''} ontoggle="admCat = this.open" style="margin-top:10px"><summary style="cursor:pointer"><b>🃏 Specifieke kaart geven</b></summary>
+            <div style="margin:6px 0">Aan: <select onchange="admTarget = this.value" style="width:auto;display:inline-block">${live.map(p => `<option value="${p.id}" ${p.id === admTarget ? 'selected' : ''}>${p.name}</option>`).join('')}</select></div>`
+            + Object.keys(CARD_TEMPLATES).map(r => `<div style="margin-top:6px;color:#f1c40f"><b>${r}</b></div>` + CARD_TEMPLATES[r].map((t, i) =>
+                `<button onclick="adminGive('${r}',${i})" style="width:100%;text-align:left;margin:2px 0;padding:6px 10px;min-height:32px;background:#1e1e24">${t.icon} <b>${t.title}</b> <span style="font-size:12px">${cardText(t).replace(/<br>/g, ' · ')}</span></button>`).join('')).join('')
+            + '</details>';
+        document.getElementById('admin-panel-body').innerHTML = out;
     }
-    function adminAll(kind) {
+
+    // Everything below is executed by the host only; admin clients send {type:'ADMIN'} which the host validates.
+    function adm(fn, a) {
+        if (isHost) { if (fn === 'all') execAll(a.kind); else execPlayer(a.id, a.k, a.v, a.x); }
+        else if (isAdmin() && clientConn && clientConn.open) clientConn.send({ type: 'ADMIN', fn, a });
+    }
+    function adminAll(kind) { adm('all', { kind }); }
+    function adminGive(r, i) { if (admTarget) adm('player', { id: admTarget, k: 'give', v: r + '|' + i }); }
+    function adminPlayer(id, k, v) {
+        let x = null, val = s => { let e = document.getElementById(s); return e ? e.value : ''; };
+        if (k === 'custom') x = { title: val('adm-title'), hp: val('adm-hp'), def: val('adm-def'), dmg: val('adm-dmg'), atk: val('adm-atk') };
+        adm('player', { id, k, v, x });
+    }
+    function adminDone() {
+        if (gameState.phase !== 'LOBBY') updateStatusBanner();
+        broadcastState();
+    }
+    function execAll(kind) {
         if (!isHost || !gameState.customMode) return;
         let ps = gameState.players.filter(p => !p.left), msg = '';
         if (kind === 'heal') { ps.forEach(p => p.hp = calculatePlayerStats(p).hp); msg = 'Iedereen is genezen'; }
@@ -1422,42 +1452,51 @@
         else if (kind === 'clear') { ps.forEach(p => p.cards = []); msg = 'Alle kaarten gewist'; }
         else if (kind === 'pause') { gameState.paused = !gameState.paused; msg = gameState.paused ? 'Spel gepauzeerd' : 'Spel hervat'; }
         else if (kind === 'restart') { if (gameState.phase !== 'TURN' && gameState.phase !== 'CARD_PICK') return; gameState.busy = false; startCombatPhase(); msg = 'Ronde herstart'; }
+        else return;
         addLog('🛠️ ' + msg);
         adminDone();
     }
-    function adminPlayer(id, k, v) {
+    function execPlayer(id, k, v, x) {
         if (!isHost || !gameState.customMode) return;
-        let p = gameState.players.find(x => x.id === id);
+        let p = gameState.players.find(y => y.id === id);
         if (!p) return;
-        let msg = '';
-        if (k === 'hp') { p.hp = Math.max(0, Math.min(999, p.hp + v)); msg = `${p.name} HP ${v > 0 ? '+' : ''}${v}`; }
-        else if (k === 'wins') { p.wins = Math.max(0, p.wins + v); msg = `${p.name} wins ${v > 0 ? '+' : ''}${v}`; }
+        let msg = '', n = Math.max(-5, Math.min(5, Number(v) || 0));
+        if (k === 'hp') { p.hp = Math.max(0, Math.min(999, p.hp + n)); msg = `${p.name} HP ${n > 0 ? '+' : ''}${n}`; }
+        else if (k === 'wins') { p.wins = Math.max(0, p.wins + n); msg = `${p.name} wins ${n > 0 ? '+' : ''}${n}`; }
         else if (k === 'revive') { p.hp = calculatePlayerStats(p).hp; msg = `${p.name} is hersteld`; }
         else if (k === 'kill') { p.hp = 0; msg = `${p.name} is uitgeschakeld`; }
-        else if (k === 'win') { if (gameState.phase !== 'TURN') return; gameState.players.forEach(x => { if (x !== p) x.hp = 0; }); p.hp = Math.max(1, p.hp); msg = `${p.name} wint de ronde`; }
+        else if (k === 'win') { if (gameState.phase !== 'TURN') return; gameState.players.forEach(y => { if (y !== p) y.hp = 0; }); p.hp = Math.max(1, p.hp); msg = `${p.name} wint de ronde`; }
         else if (k === 'rand') { p.cards.push(generateRandomCard()); msg = `${p.name} kreeg een random kaart`; }
-        else if (k === 'rm') { let c = p.cards.splice(v, 1)[0]; msg = `${p.name} verloor kaart ${c ? c.title : ''}`; }
+        else if (k === 'rm') { let c = p.cards.splice(Number(v), 1)[0]; if (!c) return; msg = `${p.name} verloor kaart ${c.title}`; }
+        else if (k === 'give') {
+            let parts = String(v).split('|'), t = (CARD_TEMPLATES[parts[0]] || [])[Number(parts[1])];
+            if (!t) return;
+            p.cards.push({ rarity: parts[0], variant: 'None', title: t.title, icon: t.icon, buffs: Object.assign({}, t.buffs), debuffs: Object.assign({}, t.debuffs), mults: Object.assign({}, t.mults), statText: '' });
+            msg = `${p.name} kreeg ${t.title}`;
+        }
         else if (k === 'custom') {
-            let card = { rarity: 'Rare', variant: 'None', title: clean(document.getElementById('adm-title').value) || 'Custom', icon: '🛠️', buffs: {}, debuffs: {}, mults: {}, statText: '' };
+            x = x || {};
+            let card = { rarity: 'Rare', variant: 'None', title: clean(String(x.title || '')) || 'Custom', icon: '🛠️', buffs: {}, debuffs: {}, mults: {}, statText: '' };
             ['hp', 'def', 'dmg', 'atk'].forEach(s => {
-                let n = Math.max(-99, Math.min(99, parseInt(document.getElementById('adm-' + s).value) || 0));
-                if (n > 0) card.buffs[s] = n; else if (n < 0) card.debuffs[s] = n;
+                let q = Math.max(-99, Math.min(99, parseInt(x[s]) || 0));
+                if (q > 0) card.buffs[s] = q; else if (q < 0) card.debuffs[s] = q;
             });
             p.cards.push(card); msg = `${p.name} kreeg kaart "${card.title}"`;
         }
+        else if (k === 'grant') { if (p.id === myId) return; p.admin = !p.admin; msg = `${p.name} ${p.admin ? 'is nu admin' : 'is geen admin meer'}`; }
+        else return;
         addLog('🛠️ ' + msg);
         if (gameState.phase === 'TURN' && !gameState.busy) checkRoundEnd(false);
-        adminDone(id);
+        adminDone();
     }
     function adminTools(p) {
-        if (!isHost) return '';
+        if (!isAdmin()) return '';
         let id = p.id, out = '';
-        if (id !== myId) out += `<button class="btn-kick" onclick="kickPlayer('${id}');closeModal()">Kick</button>` + (gameState.phase === 'TURN' && gameState.turnOrder[gameState.turnIndex] === id ? `<button class="btn-kick" onclick="skipTurn();closeModal()">Beurt overslaan</button>` : '');
+        if (isHost && id !== myId) out += `<button class="btn-kick" onclick="kickPlayer('${id}');closeModal()">Kick</button>` + (gameState.phase === 'TURN' && gameState.turnOrder[gameState.turnIndex] === id ? `<button class="btn-kick" onclick="skipTurn();closeModal()">Beurt overslaan</button>` : '');
         if (gameState.customMode) {
             const b = (k, v, l) => `<button onclick="adminPlayer('${id}','${k}',${v})" style="width:auto;display:inline-block;margin:2px">${l}</button>`;
             const f = (s) => `${s.toUpperCase()} <input id="adm-${s}" type="number" value="0" style="width:56px;display:inline-block;margin:2px">`;
-            out += `<div style="margin:8px 0;padding:8px;border:1px dashed #e67e22;border-radius:8px"><b>🛠️ Admin</b><br>`
-                + b('hp', 1, '❤️ +1') + b('hp', -1, '❤️ -1') + b('wins', 1, '🏆 +1') + b('wins', -1, '🏆 -1') + b('revive', 0, '✨ Herstel') + b('kill', 0, '💀 Uitschakelen') + b('win', 0, '🥇 Laat ronde winnen') + b('rand', 0, '🎁 Random kaart')
+            out += `<div style="margin:8px 0;padding:8px;border:1px dashed #e67e22;border-radius:8px"><b>🛠️ Admin</b><br>${b('hp', 1, '❤️ +1')}${b('hp', -1, '❤️ -1')}${b('wins', 1, '🏆 +1')}${b('wins', -1, '🏆 -1')}${b('rand', 0, '🎁 Random kaart')}`
                 + `<br><input id="adm-title" placeholder="Kaartnaam" maxlength="16" style="width:120px;display:inline-block;margin:2px"> ${f('hp')}${f('def')}${f('dmg')}${f('atk')}`
                 + `<button onclick="adminPlayer('${id}','custom',0)" style="width:auto;display:inline-block;margin:2px">➕ Eigen kaart geven</button></div>`;
         }
@@ -1465,6 +1504,7 @@
     }
 
     function viewPlayerCards(playerId) {
+        modalPid = playerId;
         const player = gameState.players.find(p => p.id === playerId);
         if (!player) return;
 
@@ -1486,7 +1526,7 @@
         } else {
             container.innerHTML = player.cards.map((c, ci) => `
                 <div style="background:#1e1e24; padding:10px; margin:6px 0; border-radius:6px; border-left:4px solid ${c.rarity === 'Legendary' ? '#f1c40f' : '#3498db'};">
-                    ${isHost && gameState.customMode ? `<button class="btn-kick" style="float:right;width:auto" onclick="adminPlayer('${player.id}','rm',${ci})">✖</button>` : ''}<strong>${c.rarity} ${c.variant !== 'None' ? `(${c.variant})` : ''}</strong> - ${c.title}<br>
+                    ${isAdmin() && gameState.customMode ? `<button class="btn-kick" style="float:right;width:auto" onclick="adminPlayer('${player.id}','rm',${ci})">✖</button>` : ''}<strong>${c.rarity} ${c.variant !== 'None' ? `(${c.variant})` : ''}</strong> - ${c.title}<br>
                     ${cardText(c)}
                 </div>
             `).join('');
@@ -1496,7 +1536,7 @@
     }
 
     function closeModal() {
-        renderAdminPanel();
+        modalPid = '';
         document.getElementById('player-modal').style.display = 'none';
     }
 (function () {
