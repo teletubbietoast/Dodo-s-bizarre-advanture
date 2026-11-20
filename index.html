@@ -278,6 +278,7 @@
 <div class="container" id="main-container">
     <h1>Brawler P2P Multiplayer</h1>
     <button id="mute-btn" onclick="toggleMute()">🔊</button>
+    <div id="admin-bar" style="display:none;margin:8px 0"></div>
 
     <!-- 1. HOOFDMENU -->
     <div id="screen-menu" class="screen active">
@@ -629,7 +630,8 @@
             }];
             
             document.getElementById('display-code').innerText = myId;
-            setInterval(hostTick, 1000);
+            clearInterval(tickIv); tickIv = setInterval(hostTick, 1000);
+            curHostCode = id;
             document.getElementById('host-start-btn').style.display = 'block';
             document.getElementById('host-settings-area').style.display = 'block';
             
@@ -643,12 +645,54 @@
             setConnStatus("menu-conn-status", `❌ Fout bij hosten (${err.type}): ${err.type === 'unavailable-id' ? 'Code bezet, probeer opnieuw.' : 'Controleer je internetverbinding.'}`, "error");
         });
 
-        peer.on('connection', (conn) => {
-            lastSeen[conn.peer] = Date.now();
-            hostConnections.push(conn);
-            conn.on('data', (data) => handleClientMessage(conn, data));
-            conn.on('close', () => { hostConnections = hostConnections.filter(c => c !== conn); handleLeave(conn.peer); });
+        peer.on('connection', onHostConn);
+    }
+
+    let migrating = false, migTries = 0, curHostCode = '', pingIv = 0, tickIv = 0;
+
+    function onHostConn(conn) {
+        lastSeen[conn.peer] = Date.now();
+        hostConnections.push(conn);
+        conn.on('data', (data) => handleClientMessage(conn, data));
+        conn.on('close', () => { hostConnections = hostConnections.filter(c => c !== conn); handleLeave(conn.peer); });
+    }
+
+    // Host migration: the first remaining player (by seat order) takes over at <oldcode>+'M'; the others rejoin by name.
+    function migrate() {
+        let nc = curHostCode + 'M';
+        let cands = gameState.players.filter(p => p.id !== curHostCode && !p.left);
+        if (cands.length && cands[0].name === myName) return becomeHost(nc);
+        migrating = true; migTries = 0; reconnects = 1;
+        document.getElementById('join-code').value = nc;
+        setTimeout(joinGame, 3000);
+    }
+    function becomeHost(nc) {
+        isHost = true; migrating = false; reconnects = 0; hostConnections = []; lastSeen = {};
+        if (peer) peer.destroy();
+        if (gameState.phase === 'LOBBY' || gameState.phase === 'GAME_OVER') gameState.players = gameState.players.filter(p => p.name === myName);
+        else gameState.players.forEach(p => { if (p.name !== myName) p.left = true; });
+        gameState.busy = false; timerKey = '';
+        peer = new Peer(nc, getPeerOptions());
+        peer.on('open', (id) => {
+            myId = id;
+            let me = gameState.players.find(p => p.name === myName), old = me.id;
+            me.id = id; me.left = false;
+            gameState.turnOrder = (gameState.turnOrder || []).map(x => x === old ? id : x);
+            gameState.cardPickQueue = (gameState.cardPickQueue || []).map(x => x === old ? id : x);
+            if (gameState.cardChoicesMap && gameState.cardChoicesMap[old]) { gameState.cardChoicesMap[id] = gameState.cardChoicesMap[old]; delete gameState.cardChoicesMap[old]; }
+            if (gameState.roundWinnerId === old) gameState.roundWinnerId = id;
+            curHostCode = id;
+            document.getElementById('display-code').innerText = id;
+            document.getElementById('host-start-btn').style.display = 'block';
+            document.getElementById('host-settings-area').style.display = 'block';
+            document.getElementById('client-wait-msg').style.display = 'none';
+            clearInterval(tickIv); tickIv = setInterval(hostTick, 1000);
+            addLog(`👑 ${myName} is de nieuwe host`);
+            checkRoundEnd(false);
+            broadcastState();
         });
+        peer.on('error', (err) => { showScreen('screen-menu'); setConnStatus('menu-conn-status', `❌ Kon geen nieuwe host worden (${err.type}).`, 'error'); });
+        peer.on('connection', onHostConn);
     }
 
     function kickPlayer(targetId) {
@@ -695,6 +739,8 @@
                 gameState.turnOrder = gameState.turnOrder.map(x => x === old ? rj.id : x);
                 gameState.initResults.forEach(r => { if (r.id === old) r.id = rj.id; });
                 if (gameState.roundWinnerId === old) gameState.roundWinnerId = rj.id;
+                gameState.cardPickQueue = gameState.cardPickQueue.map(x => x === old ? rj.id : x);
+                if (gameState.cardChoicesMap[old]) { gameState.cardChoicesMap[rj.id] = gameState.cardChoicesMap[old]; delete gameState.cardChoicesMap[old]; }
                 addLog(`🔌 ${rj.name} is terug (doet mee vanaf de volgende ronde)`);
                 broadcastState();
                 return;
@@ -754,13 +800,15 @@
         gameState.timeLeft = deadline ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : 0;
         localDeadline = Date.now() + gameState.timeLeft * 1000;
         hostConnections.forEach(conn => { if (conn.open) conn.send({ type: 'STATE_UPDATE', state: gameState }); });
+        renderAdminBar();
         if (gameState.phase === 'LOBBY') updateLobbyUI(); else renderGameUI();
     }
 
     function hostTick() {
         let now = Date.now();
         hostConnections.slice().forEach(c => { if (now - (lastSeen[c.peer] || now) > 90000) { try { c.close(); } catch (e) {} handleLeave(c.peer); } });
-        if (!gameState.settings.turnTime || !deadline || now < deadline || gameState.busy) return;
+        if (gameState.paused && deadline) deadline += 1000;
+        if (gameState.paused || !gameState.settings.turnTime || !deadline || now < deadline || gameState.busy) return;
         deadline = 0;
         if (gameState.phase === 'TURN') {
             let id = gameState.turnOrder[gameState.turnIndex], ts = gameState.players.filter(p => p.hp > 0 && p.id !== id);
@@ -792,7 +840,7 @@
 
         setConnStatus("menu-conn-status", `⏳ Verbinden met lobby <strong>${hostCode}</strong>...`);
         if (peer) peer.destroy();
-        if (joinTimeout) clearTimeout(joinTimeout);
+        curHostCode = hostCode; if (joinTimeout) clearTimeout(joinTimeout);
 
         peer = new Peer(getPeerOptions());
 
@@ -808,15 +856,15 @@
 
             clientConn.on('open', () => {
                 clearTimeout(joinTimeout);
-                setConnStatus("menu-conn-status", "✅ Verbonden!", "success"); reconnects = 0;
+                setConnStatus("menu-conn-status", "✅ Verbonden!", "success"); reconnects = 0; migrating = false; migTries = 0;
                 clientConn.send({ type: 'JOIN', name: myName });
-                setInterval(() => { if (clientConn.open) clientConn.send({ type: 'PING' }); }, 5000);
+                clearInterval(pingIv); pingIv = setInterval(() => { if (clientConn.open) clientConn.send({ type: 'PING' }); }, 5000);
                 document.getElementById('display-code').innerText = hostCode;
                 document.getElementById('client-wait-msg').style.display = 'block';
                 showScreen('screen-lobby');
             });
 
-            clientConn.on('close', () => { if (rejected || isHost) return; if (gameState.phase !== 'LOBBY' && reconnects++ < 4) { setTimeout(joinGame, 1500); return; } showScreen('screen-menu'); setConnStatus('menu-conn-status', '❌ Verbinding met de host is verbroken.', 'error'); });
+            clientConn.on('close', () => { if (rejected || isHost) return; if (reconnects++ < 2) { setTimeout(joinGame, 1500); return; } showScreen('screen-menu'); setConnStatus('menu-conn-status', '❌ Verbinding met de host is verbroken.', 'error'); });
             clientConn.on('error', (err) => {
                 clearTimeout(joinTimeout);
                 setConnStatus("menu-conn-status", `❌ Verbinding mislukt (${err.type}).`, "error");
@@ -826,7 +874,7 @@
                 if (data.type === 'REJECT') { rejected = true; showScreen('screen-menu'); setConnStatus('menu-conn-status', '❌ ' + data.reason, 'error'); return; }
                 if (data.type === 'STATE_UPDATE') {
                     gameState = JSON.parse(JSON.stringify(data.state), (k, v) => typeof v !== 'string' ? v : (k === 't' ? v.replace(/[<>&]/g, '') : v.replace(/[<>&"'`\\]/g, '')));
-                    localDeadline = Date.now() + (gameState.timeLeft || 0) * 1000;
+                    localDeadline = Date.now() + (gameState.timeLeft || 0) * 1000; renderAdminBar();
                     if (gameState.phase === 'LOBBY') {
                         showScreen('screen-lobby');
                         updateLobbyUI();
@@ -840,6 +888,11 @@
 
         peer.on('error', (err) => {
             clearTimeout(joinTimeout);
+            if (err.type === 'peer-unavailable' && reconnects > 0) {
+                if (migrating) { if (migTries++ < 10) { setTimeout(joinGame, 2000); return; } }
+                else if (reconnects >= 2 && gameState.players.length > 1) { migrate(); return; }
+                else { reconnects++; setTimeout(joinGame, 1500); return; }
+            }
             showScreen('screen-menu');
             if (err.type === 'peer-unavailable') {
                 setConnStatus("menu-conn-status", `❌ Lobby <strong>${hostCode}</strong> niet gevonden. Controleer de code.`, "error");
@@ -971,7 +1024,7 @@
     }
 
     function handleLeave(id) {
-        { let q = gameState.players.find(x => x.id === id); if (q && q.left) return; }
+        { let q = gameState.players.find(x => x.id === id); if (q && q.left && q.hp <= 0) return; }
         let p = gameState.players.find(x => x.id === id);
         if (!p) return;
         if (gameState.phase === 'LOBBY' || gameState.phase === 'GAME_OVER') {
@@ -995,7 +1048,7 @@
     }
 
     function performDefend(id) {
-        if (gameState.phase !== 'TURN' || gameState.busy || id !== gameState.turnOrder[gameState.turnIndex]) return;
+        if (gameState.phase !== 'TURN' || gameState.busy || gameState.paused || id !== gameState.turnOrder[gameState.turnIndex]) return;
         let p = gameState.players.find(x => x.id === id);
         if (!p || p.hp <= 0) return;
         p.guard = true;
@@ -1013,7 +1066,7 @@
         broadcastState();
     }
     function performAttack(attackerId, targetId, mode) {
-        if (gameState.phase !== 'TURN' || gameState.busy || attackerId !== gameState.turnOrder[gameState.turnIndex]) return;
+        if (gameState.phase !== 'TURN' || gameState.busy || gameState.paused || attackerId !== gameState.turnOrder[gameState.turnIndex]) return;
         let attacker = gameState.players.find(p => p.id === attackerId);
         let target = gameState.players.find(p => p.id === targetId);
         if (!attacker || !target || target.id === attacker.id || target.hp <= 0 || attacker.hp <= 0) return;
@@ -1303,6 +1356,76 @@
         }
     }
 
+    // ================= HOST ADMIN / CUSTOM MODE =================
+    function toggleCustom() {
+        if (!isHost) return;
+        gameState.customMode = !gameState.customMode;
+        addLog(gameState.customMode ? '🛠️ Custom modus AAN: de host kan stats en kaarten aanpassen' : '🛠️ Custom modus UIT');
+        broadcastState();
+    }
+    function renderAdminBar() {
+        let b = document.getElementById('admin-bar'), c = gameState.customMode, inGame = gameState.phase !== 'LOBBY';
+        if (!isHost) {
+            b.style.display = (c || gameState.paused) ? 'block' : 'none';
+            b.innerHTML = `<div style="color:#e67e22">${c ? '🛠️ Custom modus actief: de host kan stats en kaarten aanpassen. ' : ''}${gameState.paused ? '⏸️ Gepauzeerd door de host' : ''}</div>`;
+            return;
+        }
+        const t = (k, l) => `<button onclick="adminAll('${k}')" style="width:auto;display:inline-block;margin:2px">${l}</button>`;
+        b.style.display = 'block';
+        b.innerHTML = `<button onclick="toggleCustom()" style="width:auto;display:inline-block;margin:2px;background:${c ? '#e67e22' : '#3a3a4c'}">🛠️ Custom modus: ${c ? 'AAN' : 'UIT'}</button>`
+            + (c && inGame ? t('heal', '❤️ Genees iedereen') + t('card', '🎁 Kaart voor iedereen') + t('clear', '🗑️ Wis alle kaarten') + t('restart', '🔄 Ronde herstarten') + t('pause', gameState.paused ? '▶️ Hervat' : '⏸️ Pauze') : '')
+            + (c && inGame ? '<div style="font-size:12px;color:#aaa">Klik op een speler voor individuele admin-tools.</div>' : '');
+    }
+    function adminAll(kind) {
+        if (!isHost || !gameState.customMode) return;
+        let ps = gameState.players.filter(p => !p.left), msg = '';
+        if (kind === 'heal') { ps.forEach(p => p.hp = calculatePlayerStats(p).hp); msg = 'Iedereen is genezen'; }
+        else if (kind === 'card') { ps.forEach(p => p.cards.push(generateRandomCard())); msg = 'Iedereen kreeg een kaart'; }
+        else if (kind === 'clear') { ps.forEach(p => p.cards = []); msg = 'Alle kaarten gewist'; }
+        else if (kind === 'pause') { gameState.paused = !gameState.paused; msg = gameState.paused ? 'Spel gepauzeerd' : 'Spel hervat'; }
+        else if (kind === 'restart') { if (gameState.phase !== 'TURN' && gameState.phase !== 'CARD_PICK') return; gameState.busy = false; startCombatPhase(); msg = 'Ronde herstart'; }
+        addLog('🛠️ ' + msg);
+        updateStatusBanner(); broadcastState();
+    }
+    function adminPlayer(id, k, v) {
+        if (!isHost || !gameState.customMode) return;
+        let p = gameState.players.find(x => x.id === id);
+        if (!p) return;
+        let msg = '';
+        if (k === 'hp') { p.hp = Math.max(0, Math.min(999, p.hp + v)); msg = `${p.name} HP ${v > 0 ? '+' : ''}${v}`; }
+        else if (k === 'wins') { p.wins = Math.max(0, p.wins + v); msg = `${p.name} wins ${v > 0 ? '+' : ''}${v}`; }
+        else if (k === 'revive') { p.hp = calculatePlayerStats(p).hp; msg = `${p.name} is hersteld`; }
+        else if (k === 'kill') { p.hp = 0; msg = `${p.name} is uitgeschakeld`; }
+        else if (k === 'win') { if (gameState.phase !== 'TURN') return; gameState.players.forEach(x => { if (x !== p) x.hp = 0; }); p.hp = Math.max(1, p.hp); msg = `${p.name} wint de ronde`; }
+        else if (k === 'rand') { p.cards.push(generateRandomCard()); msg = `${p.name} kreeg een random kaart`; }
+        else if (k === 'rm') { let c = p.cards.splice(v, 1)[0]; msg = `${p.name} verloor kaart ${c ? c.title : ''}`; }
+        else if (k === 'custom') {
+            let card = { rarity: 'Rare', variant: 'None', title: clean(document.getElementById('adm-title').value) || 'Custom', icon: '🛠️', buffs: {}, debuffs: {}, mults: {}, statText: '' };
+            ['hp', 'def', 'dmg', 'atk'].forEach(s => {
+                let n = Math.max(-99, Math.min(99, parseInt(document.getElementById('adm-' + s).value) || 0));
+                if (n > 0) card.buffs[s] = n; else if (n < 0) card.debuffs[s] = n;
+            });
+            p.cards.push(card); msg = `${p.name} kreeg kaart "${card.title}"`;
+        }
+        addLog('🛠️ ' + msg);
+        if (gameState.phase === 'TURN' && !gameState.busy) checkRoundEnd(false);
+        updateStatusBanner(); broadcastState(); viewPlayerCards(id);
+    }
+    function adminTools(p) {
+        if (!isHost) return '';
+        let id = p.id, out = '';
+        if (id !== myId) out += `<button class="btn-kick" onclick="kickPlayer('${id}');closeModal()">Kick</button>` + (gameState.phase === 'TURN' && gameState.turnOrder[gameState.turnIndex] === id ? `<button class="btn-kick" onclick="skipTurn();closeModal()">Beurt overslaan</button>` : '');
+        if (gameState.customMode) {
+            const b = (k, v, l) => `<button onclick="adminPlayer('${id}','${k}',${v})" style="width:auto;display:inline-block;margin:2px">${l}</button>`;
+            const f = (s) => `${s.toUpperCase()} <input id="adm-${s}" type="number" value="0" style="width:56px;display:inline-block;margin:2px">`;
+            out += `<div style="margin:8px 0;padding:8px;border:1px dashed #e67e22;border-radius:8px"><b>🛠️ Admin</b><br>`
+                + b('hp', 1, '❤️ +1') + b('hp', -1, '❤️ -1') + b('wins', 1, '🏆 +1') + b('wins', -1, '🏆 -1') + b('revive', 0, '✨ Herstel') + b('kill', 0, '💀 Uitschakelen') + b('win', 0, '🥇 Laat ronde winnen') + b('rand', 0, '🎁 Random kaart')
+                + `<br><input id="adm-title" placeholder="Kaartnaam" maxlength="16" style="width:120px;display:inline-block;margin:2px"> ${f('hp')}${f('def')}${f('dmg')}${f('atk')}`
+                + `<button onclick="adminPlayer('${id}','custom',0)" style="width:auto;display:inline-block;margin:2px">➕ Eigen kaart geven</button></div>`;
+        }
+        return out;
+    }
+
     function viewPlayerCards(playerId) {
         const player = gameState.players.find(p => p.id === playerId);
         if (!player) return;
@@ -1323,15 +1446,14 @@
         if (player.cards.length === 0) {
             container.innerHTML = "<p>Deze speler heeft nog geen kaarten.</p>";
         } else {
-            container.innerHTML = player.cards.map(c => `
+            container.innerHTML = player.cards.map((c, ci) => `
                 <div style="background:#1e1e24; padding:10px; margin:6px 0; border-radius:6px; border-left:4px solid ${c.rarity === 'Legendary' ? '#f1c40f' : '#3498db'};">
-                    <strong>${c.rarity} ${c.variant !== 'None' ? `(${c.variant})` : ''}</strong> - ${c.title}<br>
+                    ${isHost && gameState.customMode ? `<button class="btn-kick" style="float:right;width:auto" onclick="adminPlayer('${player.id}','rm',${ci})">✖</button>` : ''}<strong>${c.rarity} ${c.variant !== 'None' ? `(${c.variant})` : ''}</strong> - ${c.title}<br>
                     ${cardText(c)}
                 </div>
             `).join('');
         }
-        document.getElementById('modal-host-actions').innerHTML = (isHost && player.id !== myId)
-            ? `<button class="btn-kick" onclick="kickPlayer('${player.id}');closeModal()">Kick</button>` + (gameState.phase === 'TURN' && gameState.turnOrder[gameState.turnIndex] === player.id ? `<button class="btn-kick" onclick="skipTurn();closeModal()">Beurt overslaan</button>` : '') : '';
+        document.getElementById('modal-host-actions').innerHTML = adminTools(player);
         document.getElementById('player-modal').style.display = 'flex';
     }
 
