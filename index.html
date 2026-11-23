@@ -9,22 +9,22 @@
         * { box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #1e1e24; 
+            background-color: #17110d; 
             color: #fff; 
             margin: 0; 
             padding: 12px; 
             transition: background-color 0.2s; 
             overflow-x: hidden;
         }
-        h1 { font-size: clamp(1.4rem, 4vw, 2rem); color: #f1c40f; margin-top: 5px; }
-        h2 { font-size: clamp(1.2rem, 3.5vw, 1.5rem); color: #f1c40f; margin-top: 5px; }
-        h3 { font-size: clamp(1rem, 3vw, 1.25rem); color: #f1c40f; margin-top: 5px; }
+        h1 { font-size: clamp(1.4rem, 4vw, 2rem); color: #e0a93b; margin-top: 5px; }
+        h2 { font-size: clamp(1.2rem, 3.5vw, 1.5rem); color: #e0a93b; margin-top: 5px; }
+        h3 { font-size: clamp(1rem, 3vw, 1.25rem); color: #e0a93b; margin-top: 5px; }
         
         .container { 
             max-width: 1000px; 
             width: 100%;
             margin: 0 auto; 
-            background: #2b2b36; 
+            background: #2a2019; 
             padding: clamp(14px, 3vw, 24px); 
             border-radius: 12px; 
             position: relative; 
@@ -44,50 +44,50 @@
         input[type="text"], select {
             width: 100%;
             max-width: 320px;
-            background: #3a3a4c;
+            background: #3d2f25;
             color: #fff;
-            border: 1px solid #555;
+            border: 1px solid #5a4636;
         }
         input[type="number"] { 
             width: 100%;
             max-width: 120px; 
-            background: #3a3a4c; 
+            background: #3d2f25; 
             color: #fff; 
-            border: 1px solid #555; 
+            border: 1px solid #5a4636; 
         }
         button { 
-            background: #e74c3c; 
+            background: #c8452f; 
             color: white; 
             cursor: pointer; 
             font-weight: bold; 
             transition: background 0.2s, transform 0.1s; 
             margin-right: 6px;
         }
-        button:hover { background: #c0392b; transform: scale(1.02); }
-        button:disabled { background: #555 !important; cursor: not-allowed; transform: none !important; opacity: 0.6; }
-        .btn-kick { background: #95a5a6; padding: 6px 10px; font-size: 12px; margin-left: 10px; min-height: 30px; }
-        .btn-kick:hover { background: #7f8c8d; }
+        button:hover { background: #9e3322; transform: scale(1.02); }
+        button:disabled { background: #5a4636 !important; cursor: not-allowed; transform: none !important; opacity: 0.6; }
+        .btn-kick { background: #8a7a68; padding: 6px 10px; font-size: 12px; margin-left: 10px; min-height: 30px; }
+        .btn-kick:hover { background: #6f6254; }
         
         /* Netwerk status melding */
         .conn-status {
-            background: #1e1e24;
-            border-left: 4px solid #3498db;
+            background: #17110d;
+            border-left: 4px solid #4f8a8b;
             padding: 10px 14px;
             border-radius: 6px;
             margin: 12px 0;
             font-size: 14px;
             display: none;
         }
-        .conn-status.error { border-left-color: #e74c3c; color: #ff7675; }
-        .conn-status.success { border-left-color: #2ecc71; color: #55efc4; }
+        .conn-status.error { border-left-color: #c8452f; color: #ff7675; }
+        .conn-status.success { border-left-color: #7fa650; color: #55efc4; }
 
-        .settings-box { background: #1e1e24; border: 2px solid #f1c40f; padding: 15px; border-radius: 8px; margin: 15px 0; }
+        .settings-box { background: #17110d; border: 2px solid #e0a93b; padding: 15px; border-radius: 8px; margin: 15px 0; }
         .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px; }
-        .settings-grid label { font-size: 14px; font-weight: bold; color: #f1c40f; display: block; margin-bottom: 4px; }
+        .settings-grid label { font-size: 14px; font-weight: bold; color: #e0a93b; display: block; margin-bottom: 4px; }
 
         .stats-dashboard { 
-            background: #1e1e24; 
-            border: 2px solid #f1c40f; 
+            background: #17110d; 
+            border: 2px solid #e0a93b; 
             padding: 12px 15px; 
             border-radius: 8px; 
             margin-bottom: 15px; 
@@ -100,11 +100,11 @@
         .stats-dashboard-title { width: 100%; }
         .stat-boxes-group { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
         .stat-box { 
-            background: #3a3a4c; 
+            background: #3d2f25; 
             padding: 8px 12px; 
             border-radius: 6px; 
             font-weight: bold; 
-            border: 1px solid #555; 
+            border: 1px solid #5a4636; 
             font-size: clamp(13px, 2.5vw, 15px);
             flex: 1 1 auto;
             text-align: center;
@@ -113,18 +113,18 @@
         .game-layout { display: flex; gap: 20px; align-items: flex-start; }
         .game-main { flex: 1; min-width: 0; width: 100%; }
         
-        .turn-sidebar { width: 220px; background: #1e1e24; border: 2px solid #3498db; padding: 15px; border-radius: 8px; flex-shrink: 0; }
-        .turn-sidebar h4 { margin-top: 0; margin-bottom: 10px; color: #3498db; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .turn-sidebar { width: 220px; background: #17110d; border: 2px solid #4f8a8b; padding: 15px; border-radius: 8px; flex-shrink: 0; }
+        .turn-sidebar h4 { margin-top: 0; margin-bottom: 10px; color: #4f8a8b; border-bottom: 1px solid #4a3a2d; padding-bottom: 5px; }
         .turn-sidebar-list { display: flex; flex-direction: column; gap: 8px; }
-        .turn-sidebar-item { background: #3a3a4c; padding: 8px 12px; border-radius: 6px; font-size: 14px; border: 1px solid #555; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .turn-sidebar-item.active { border-color: #e74c3c; background: #e74c3c; color: white; font-weight: bold; box-shadow: 0 0 10px #e74c3c; }
+        .turn-sidebar-item { background: #3d2f25; padding: 8px 12px; border-radius: 6px; font-size: 14px; border: 1px solid #5a4636; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .turn-sidebar-item.active { border-color: #c8452f; background: #c8452f; color: white; font-weight: bold; box-shadow: 0 0 10px #c8452f; }
 
         .players-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; margin-bottom: 15px; position: relative; }
-        .player-card { background: #3a3a4c; padding: 12px 14px; border-radius: 8px; cursor: pointer; border: 3px solid #555; position: relative; transition: all 0.3s ease; }
-        .player-card:hover { border-color: #f1c40f; }
-        .player-card.dead { opacity: 0.35; background: #1a1a20; text-decoration: line-through; border-color: #333; }
-        .player-card.active-turn { border-color: #e74c3c; box-shadow: 0 0 15px #e74c3c; animation: turnPulse 1.5s infinite alternate; }
-        @keyframes turnPulse { 0% { box-shadow: 0 0 8px #e74c3c; } 100% { box-shadow: 0 0 20px #e74c3c, 0 0 30px #f39c12; } }
+        .player-card { background: #3d2f25; padding: 12px 14px; border-radius: 8px; cursor: pointer; border: 3px solid #5a4636; position: relative; transition: all 0.3s ease; }
+        .player-card:hover { border-color: #e0a93b; }
+        .player-card.dead { opacity: 0.35; background: #120d0a; text-decoration: line-through; border-color: #333; }
+        .player-card.active-turn { border-color: #c8452f; box-shadow: 0 0 15px #c8452f; animation: turnPulse 1.5s infinite alternate; }
+        @keyframes turnPulse { 0% { box-shadow: 0 0 8px #c8452f; } 100% { box-shadow: 0 0 20px #c8452f, 0 0 30px #e08a2e; } }
         
         .player-card.just-killed { animation: killAnimation 1s forwards ease-in-out; }
         @keyframes killAnimation {
@@ -132,15 +132,15 @@
             20% { transform: scale(1.08) rotate(-3deg); }
             40% { transform: scale(1.08) rotate(3deg); }
             60% { transform: scale(1) rotate(-1deg); }
-            100% { transform: scale(1); opacity: 0.35; background: #1a1a20; }
+            100% { transform: scale(1); opacity: 0.35; background: #120d0a; }
         }
 
-        .turn-badge { display: none; background: #e74c3c; color: #fff; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; position: absolute; top: -10px; right: 10px; text-transform: uppercase; }
+        .turn-badge { display: none; background: #c8452f; color: #fff; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 4px; position: absolute; top: -10px; right: 10px; text-transform: uppercase; }
         .active-turn .turn-badge { display: block; }
 
         .round-banner { display: none; padding: 12px; border-radius: 8px; text-align: center; font-size: clamp(16px, 3.5vw, 22px); font-weight: bold; margin-bottom: 15px; animation: popIn 0.4s ease; }
-        .round-banner.win { background: #27ae60; color: #fff; border: 2px solid #2ecc71; }
-        .round-banner.lose { background: #c0392b; color: #fff; border: 2px solid #e74c3c; }
+        .round-banner.win { background: #5f8a3c; color: #fff; border: 2px solid #7fa650; }
+        .round-banner.lose { background: #9e3322; color: #fff; border: 2px solid #c8452f; }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
         .card-selection { 
@@ -190,37 +190,37 @@
         .card-stats { font-size: clamp(15px, 2.5vw, 17px); font-weight: 700; text-align: center; color: #000; margin-bottom: 6px; line-height: 1.25; }
 
         .rarity-Common { background: #dcdcdc; }
-        .rarity-Uncommon { background: #d4edda; border-color: #2ecc71; }
-        .rarity-Rare { background: #d0e1f9; border-color: #3498db; }
-        .rarity-Legendary { background: #fff3cd; border-color: #f1c40f; animation: legendaryGlow 2s infinite alternate; }
-        @keyframes legendaryGlow { 0% { box-shadow: 0 0 12px #f1c40f; } 100% { box-shadow: 0 0 25px #f39c12; } }
+        .rarity-Uncommon { background: #d4edda; border-color: #7fa650; }
+        .rarity-Rare { background: #d0e1f9; border-color: #4f8a8b; }
+        .rarity-Legendary { background: #fff3cd; border-color: #e0a93b; animation: legendaryGlow 2s infinite alternate; }
+        @keyframes legendaryGlow { 0% { box-shadow: 0 0 12px #e0a93b; } 100% { box-shadow: 0 0 25px #e08a2e; } }
 
-        .variant-Blessed { border: 4px double #f1c40f !important; box-shadow: 0 0 15px #f1c40f !important; }
-        .variant-Cursed { border: 3px solid #8e44ad !important; box-shadow: 0 0 15px #8e44ad !important; }
+        .variant-Blessed { border: 4px double #e0a93b !important; box-shadow: 0 0 15px #e0a93b !important; }
+        .variant-Cursed { border: 3px solid #7a4a6d !important; box-shadow: 0 0 15px #7a4a6d !important; }
         .variant-tag { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; position: absolute; top: -10px; right: 15px; text-transform: uppercase; }
-        .tag-Blessed { background: #f1c40f; color: #000; }
-        .tag-Cursed { background: #8e44ad; color: #fff; }
+        .tag-Blessed { background: #e0a93b; color: #000; }
+        .tag-Cursed { background: #7a4a6d; color: #fff; }
 
         .dice-container { text-align: center; margin: 16px 0; }
-        .dice { display: inline-block; width: 68px; height: 68px; background: #e74c3c; color: white; font-size: 30px; font-weight: bold; line-height: 60px; border-radius: 14px; border: 4px solid #fff; box-shadow: 0 6px 12px rgba(0,0,0,0.5); }
-        .dice.crit { background: #f1c40f; color: #000; border-color: #f39c12; }
+        .dice { display: inline-block; width: 68px; height: 68px; background: #c8452f; color: white; font-size: 30px; font-weight: bold; line-height: 60px; border-radius: 14px; border: 4px solid #fff; box-shadow: 0 6px 12px rgba(0,0,0,0.5); }
+        .dice.crit { background: #e0a93b; color: #000; border-color: #e08a2e; }
         .rolling { animation: spin 0.12s infinite linear; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .target-damage-pop { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); color: #ff4757; font-size: 28px; font-weight: 900; animation: floatUpCard 1.2s forwards; pointer-events: none; z-index: 99; text-shadow: 0 2px 4px #000; white-space: nowrap; }
-        .target-damage-pop.crit-pop { color: #f1c40f; font-size: 34px; text-shadow: 0 0 10px #e67e22; }
+        .target-damage-pop.crit-pop { color: #e0a93b; font-size: 34px; text-shadow: 0 0 10px #d9782d; }
         .target-damage-pop.kill-pop { color: #ff0000; font-size: 38px; text-shadow: 0 0 15px #000; }
         @keyframes floatUpCard { 0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); } 50% { transform: translate(-50%, -20px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -40px) scale(1); } }
         .flash-damage { background-color: #78281f !important; }
         .shake { animation: shakeScreen 0.3s ease-in-out; }
         @keyframes shakeScreen { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 
-        .status-banner { background: #3a3a4c; border-left: 5px solid #f1c40f; padding: 12px; margin: 10px 0; border-radius: 4px; font-size: clamp(15px, 2.8vw, 18px); font-weight: bold; }
+        .status-banner { background: #3d2f25; border-left: 5px solid #e0a93b; padding: 12px; margin: 10px 0; border-radius: 4px; font-size: clamp(15px, 2.8vw, 18px); font-weight: bold; }
         .attack-buttons-grid { display: flex; flex-wrap: wrap; gap: 10px; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 100; padding: 15px; }
-        .modal-content { background: #2b2b36; padding: 20px; border-radius: 10px; max-width: 500px; width: 100%; max-height: 85vh; overflow-y: auto; border: 2px solid #555; }
-        .modal-stats { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; background: #1e1e24; padding: 10px; border-radius: 6px; }
+        .modal-content { background: #2a2019; padding: 20px; border-radius: 10px; max-width: 500px; width: 100%; max-height: 85vh; overflow-y: auto; border: 2px solid #5a4636; }
+        .modal-stats { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; background: #17110d; padding: 10px; border-radius: 6px; }
 
         @media (max-width: 768px) {
             body { padding: 8px; }
@@ -264,13 +264,13 @@
             .card-stats { margin-bottom: 0; font-size: 14px; text-align: right; }
         }
     
-.hpbar{height:7px;background:#1a1a20;border-radius:4px;margin:5px 0;overflow:hidden}
-.hpbar i{display:block;height:100%;background:linear-gradient(90deg,#e74c3c,#2ecc71);transition:width .5s}
+.hpbar{height:7px;background:#120d0a;border-radius:4px;margin:5px 0;overflow:hidden}
+.hpbar i{display:block;height:100%;background:linear-gradient(90deg,#c8452f,#7fa650);transition:width .5s}
 .combat-log{font-size:14px;margin:8px 0;min-height:20px;color:#bbb}
 .combat-log div{padding:2px 0}
-.miss-pop{color:#95a5a6!important;font-size:22px!important}
-#mute-btn{position:absolute;top:12px;right:12px;margin:0;padding:6px 10px;min-height:36px;background:#3a3a4c}
-.game-card.rarity-Rare{box-shadow:0 0 12px #3498db}
+.miss-pop{color:#8a7a68!important;font-size:22px!important}
+#mute-btn{position:absolute;top:12px;right:12px;margin:0;padding:6px 10px;min-height:36px;background:#3d2f25}
+.game-card.rarity-Rare{box-shadow:0 0 12px #4f8a8b}
 .modal{z-index:100!important}
 
 /* ---- layout fixes ---- */
@@ -299,11 +299,78 @@
 .stat-boxes-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .stat-box { flex: none; }
 @media (max-width: 560px) { .stat-boxes-group { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 768px) { #admin-fab { top: auto; bottom: 24px; padding: 10px 6px; font-size: 13px; min-height: 0; } }
+@media (max-width: 768px) { #admin-fab { top: auto !important; bottom: 24px; padding: 10px 6px; font-size: 13px; min-height: 0; } }
 @media (min-width: 481px) { .game-card { justify-content: flex-start; } .game-card .card-title { min-height: 2.2em; display: flex; align-items: center; justify-content: center; } .game-card .card-stats { margin-top: auto; padding-top: 8px; } }
+
+/* ================= skin: ink & ember ================= */
+body { font-family: 'Barlow', 'Trebuchet MS', 'Gill Sans', sans-serif; background: #120d0a repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 2px, transparent 2px 9px); scrollbar-color: #5a4636 #17110d; }
+h1, h2, h3, h4, .card-title, .stat-box, .dice { font-family: 'Alfa Slab One', 'Rockwell', 'Roboto Slab', Georgia, serif; font-weight: 400; letter-spacing: .02em; }
+h1 { color: #e0a93b; text-shadow: 3px 3px 0 #000; text-transform: uppercase; }
+.container { border-radius: 6px; border: 3px solid #0b0806; box-shadow: 8px 8px 0 #0b0806; }
+button, input, select { font-family: inherit; border-radius: 4px; }
+button { text-transform: uppercase; letter-spacing: .05em; border: 2px solid #0b0806; box-shadow: 0 4px 0 #0b0806; transition: transform .08s, box-shadow .08s, background .15s; }
+button:hover { background: #d9593f; transform: none; }
+button:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b0806; }
+button:disabled { box-shadow: none; }
+input[type="text"], input[type="number"], select { border: 2px solid #0b0806; box-shadow: inset 2px 2px 0 rgba(0,0,0,.35); }
+.settings-box, .stats-dashboard, .turn-sidebar { background: #211913; border: 3px solid #0b0806; border-radius: 4px; box-shadow: 4px 4px 0 #0b0806; }
+.status-banner { border-radius: 0; border: 2px solid #0b0806; border-left: 8px solid #e0a93b; box-shadow: 3px 3px 0 #0b0806; }
+.stat-box { border-radius: 3px; border: 2px solid #0b0806; }
+.player-card { border-radius: 4px; border: 3px solid #0b0806; box-shadow: 4px 4px 0 #0b0806; }
+.player-card:hover { border-color: #e0a93b; }
+.player-card.active-turn { border-color: #d9782d; animation: turnHard .8s steps(2) infinite alternate; }
+@keyframes turnHard { 0% { box-shadow: 4px 4px 0 #d9782d; } 100% { box-shadow: 7px 7px 0 #d9782d; } }
+.turn-sidebar-item { border-radius: 3px; border: 2px solid #0b0806; }
+.turn-sidebar-item.active { box-shadow: 3px 3px 0 #0b0806; }
+.hpbar { height: 10px; border: 2px solid #0b0806; border-radius: 0; background: #120d0a; }
+.hpbar i { background: #c8452f; }
+.round-banner { border-radius: 0; }
+.game-card { border-radius: 10px; border: 3px solid #0b0806; box-shadow: 5px 5px 0 #0b0806; color: #1d140e; background: #e6dcc4; }
+.game-card:nth-child(odd) { transform: rotate(-1.2deg); } .game-card:nth-child(even) { transform: rotate(1deg); }
+.game-card:hover { transform: translateY(-6px) rotate(0); box-shadow: 8px 10px 0 #0b0806; }
+.rarity-Common { background: #e6dcc4; } .rarity-Uncommon { background: #d9e0b8; } .rarity-Rare { background: #c9dcd8; } .rarity-Legendary { background: #f2dc9a; animation: none; }
+.game-card.rarity-Uncommon, .game-card.rarity-Rare, .game-card.rarity-Common { border-color: #0b0806; }
+.game-card.rarity-Rare { box-shadow: 5px 5px 0 #0b0806; } .game-card.rarity-Legendary { border-color: #0b0806; box-shadow: 5px 5px 0 #0b0806, 0 0 0 3px #e0a93b; }
+.rarity-Uncommon .card-rarity-bar { background: #7fa650; color: #fff; } .rarity-Rare .card-rarity-bar { background: #4f8a8b; color: #fff; } .rarity-Legendary .card-rarity-bar { background: #e0a93b; }
+.card-rarity-bar { border-radius: 2px; border: 2px solid #0b0806; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.variant-Blessed { border: 3px solid #0b0806 !important; box-shadow: 5px 5px 0 #0b0806, 0 0 0 4px #e0a93b !important; }
+.variant-Cursed { border: 3px solid #0b0806 !important; box-shadow: 5px 5px 0 #0b0806, 0 0 0 4px #7a4a6d !important; }
+.dice { border-radius: 6px; border: 3px solid #0b0806; box-shadow: 4px 4px 0 #0b0806; }
+.modal-content { border-radius: 6px; border: 3px solid #0b0806; box-shadow: 6px 6px 0 #0b0806; }
+#admin-panel { border-left: 3px solid #0b0806; box-shadow: -6px 0 0 #0b0806; animation: drawerIn .25s ease-out; }
+#admin-panel.closing { animation: drawerOut .2s ease-in forwards; }
+#admin-fab { border: 2px solid #0b0806; border-right: 0; border-radius: 4px 0 0 4px !important; box-shadow: -3px 3px 0 #0b0806; }
+@keyframes drawerIn { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes drawerOut { to { transform: translateX(100%); } }
+.arow.flash { animation: rowFlash 1.2s; }
+@keyframes rowFlash { 0% { outline: 3px solid #e0a93b; outline-offset: -3px; transform: scale(1.03); } 60% { outline: 3px solid #e0a93b; outline-offset: -3px; transform: none; } 100% { outline: 0 solid transparent; } }
+.arow { transition: background .2s; }
+/* toasts and card reveal */
+#toast-stack { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 120; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; width: min(92vw, 420px); }
+.toast { background: #17110d; color: #f3e6c8; border: 2px solid #0b0806; box-shadow: 4px 4px 0 #0b0806; padding: 8px 14px; font-weight: 700; animation: toastIn .25s ease-out, toastOut .4s ease-in 2.7s forwards; }
+.toast.admin { border-color: #d9782d; } .toast.bad { border-color: #c8452f; }
+@keyframes toastIn { from { transform: translateY(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes toastOut { to { transform: translateY(-12px); opacity: 0; } }
+.card-toast { width: 170px; text-align: center; padding: 10px 12px 12px; border: 3px solid #0b0806; border-radius: 10px; box-shadow: 6px 6px 0 #0b0806; color: #1d140e; }
+.card-toast.gain { animation: cardIn .5s cubic-bezier(.2, 1.4, .4, 1) both, toastOut .4s ease-in 2.7s forwards; }
+.card-toast.loss { filter: saturate(.4); animation: cardLose 3s ease-in forwards; }
+.ct-head { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; padding: 2px 0; margin: -2px -4px 4px; border: 2px solid #0b0806; background: #7fa650; color: #fff; }
+.card-toast.loss .ct-head { background: #c8452f; }
+.ct-icon { font-size: 46px; line-height: 1.2; } .ct-title { font-family: 'Alfa Slab One', Georgia, serif; font-size: 19px; } .ct-var { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+@keyframes cardIn { from { transform: translateY(-50px) rotate(-10deg) scale(.5); opacity: 0; } to { transform: rotate(-2deg); opacity: 1; } }
+@keyframes cardLose { 0% { transform: translateY(-30px) scale(.6); opacity: 0; } 12% { transform: none; opacity: 1; } 25%, 45% { transform: translateX(-7px); } 35%, 55% { transform: translateX(7px); } 100% { transform: translateY(70px) rotate(9deg) scale(.7); opacity: 0; } }
+.fx-gain { animation: fxGain .9s ease-out; } .fx-loss { animation: fxLoss .9s ease-out; }
+@keyframes fxGain { 0%, 60% { outline: 4px solid #7fa650; outline-offset: 2px; transform: translateY(-4px); } 100% { outline: 0 solid transparent; } }
+@keyframes fxLoss { 0%, 60% { outline: 4px solid #c8452f; outline-offset: 2px; transform: translateX(4px); } 100% { outline: 0 solid transparent; } }
+#admin-panel button { background: #4a3a2d; color: #f3e6c8; font-size: 13px; }
+#admin-panel button:hover { background: #6b5440; }
+#admin-panel .btn-kick { background: #6f6254; }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+<div id="toast-stack"></div>
 
 <div class="container" id="main-container">
     <h1>Brawler P2P Multiplayer</h1>
@@ -317,7 +384,7 @@
         <input type="text" id="username" placeholder="Jouw Naam">
         <br><br>
         <button class="menu-btn" onclick="createHost()">Host Een Nieuwe Game</button>
-        <hr style="border-color: #444;">
+        <hr style="border-color: #4a3a2d;">
         <h3>Join een Host:</h3>
         <input type="text" id="join-code" placeholder="Voer Host Code in">
         <button class="menu-btn" onclick="joinGame()">Join Game</button>
@@ -327,7 +394,7 @@
 
     <!-- 2. LOBBY & INSTELLINGEN -->
     <div id="screen-lobby" class="screen">
-        <h2>Lobby Code: <span id="display-code" style="color:#f1c40f;"></span></h2>
+        <h2>Lobby Code: <span id="display-code" style="color:#e0a93b;"></span></h2>
         <p>Deel deze code met je vrienden om ze te laten joinen.</p>
         <button onclick="copyLink()">📋 Kopieer uitnodigingslink</button>
         
@@ -337,7 +404,7 @@
         <div id="lobby-players" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
 
         <h3>💬 Lobby chat</h3>
-        <div id="chat-log" style="background:#1e1e24;border-radius:8px;padding:10px;height:140px;overflow-y:auto;font-size:14px;margin-bottom:6px"></div>
+        <div id="chat-log" style="background:#17110d;border-radius:8px;padding:10px;height:140px;overflow-y:auto;font-size:14px;margin-bottom:6px"></div>
         <div class="chatrow"><input type="text" id="chat-input" maxlength="200" placeholder="Typ een bericht..." onkeydown="if(event.key==='Enter')sendChat()" style="max-width:none;width:calc(100% - 100px)">
         <button onclick="sendChat()">Stuur</button></div>
         <div id="host-settings-area" class="settings-box" style="display:none;">
@@ -400,7 +467,7 @@
         <div class="game-layout">
             <div class="game-main">
                 <div class="status-banner" id="status-banner">Wachten op actie...</div>
-                <div id="timer-badge" style="text-align:right;font-weight:bold;color:#f1c40f;min-height:20px"></div>
+                <div id="timer-badge" style="text-align:right;font-weight:bold;color:#e0a93b;min-height:20px"></div>
 
                 <p><strong>Spelers overzicht (Klik voor details):</strong></p>
                 <div id="game-players-list" class="players-grid"></div>
@@ -409,10 +476,10 @@
                     <div id="dice" class="dice">20</div>
                 </div>
 
-                <hr style="border-color: #444;">
+                <hr style="border-color: #4a3a2d;">
 
-                <details style="margin:8px 0"><summary style="cursor:pointer;color:#f1c40f">💬 Chat</summary>
-                    <div id="chat-log-g" style="background:#1e1e24;border-radius:8px;padding:8px;height:110px;overflow-y:auto;font-size:14px;margin:6px 0"></div>
+                <details style="margin:8px 0"><summary style="cursor:pointer;color:#e0a93b">💬 Chat</summary>
+                    <div id="chat-log-g" style="background:#17110d;border-radius:8px;padding:8px;height:110px;overflow-y:auto;font-size:14px;margin:6px 0"></div>
                     <div class="chatrow"><input type="text" id="chat-input-g" maxlength="200" placeholder="Bericht..." onkeydown="if(event.key==='Enter')sendChat('-g')" style="max-width:none;width:calc(100% - 100px)">
                     <button onclick="sendChat('-g')">Stuur</button></div></details>
                 <div id="combat-log" class="combat-log"></div>
@@ -429,8 +496,8 @@
     </div>
 </div>
 
-<button id="admin-fab" onclick="toggleAdminPanel()" style="display:none;position:fixed;right:0;top:38%;z-index:70;width:auto;writing-mode:vertical-rl;border-radius:10px 0 0 10px;background:#e67e22;padding:14px 8px;box-shadow:-2px 2px 8px rgba(0,0,0,.5);transition:right .2s">🛠️ ADMIN</button>
-<div id="admin-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(380px,92vw);z-index:60;background:#2b2b36;overflow-y:auto;padding:14px;box-shadow:-4px 0 16px rgba(0,0,0,.6);box-sizing:border-box"><div id="admin-panel-body"></div></div>
+<button id="admin-fab" onclick="toggleAdminPanel()" style="display:none;position:fixed;right:0;top:38%;z-index:70;width:auto;writing-mode:vertical-rl;border-radius:10px 0 0 10px;background:#d9782d;padding:14px 8px;box-shadow:-2px 2px 8px rgba(0,0,0,.5);transition:right .2s">🛠️ ADMIN</button>
+<div id="admin-panel" style="display:none;position:fixed;top:0;right:0;bottom:0;width:min(380px,92vw);z-index:60;background:#2a2019;overflow-y:auto;padding:14px;box-shadow:-4px 0 16px rgba(0,0,0,.6);box-sizing:border-box"><div id="admin-panel-body"></div></div>
 
 <div id="player-modal" class="modal" onclick="if(event.target === this) closeModal()">
     <div class="modal-content">
@@ -638,7 +705,7 @@
         let lines = [];
         for (let s in card.buffs) lines.push(`<span style="color:#1e8449">+${card.buffs[s]} ${s.toUpperCase()}</span>`);
         for (let s in card.mults) lines.push(`<span style="color:#b7950b">x${card.mults[s]} ${s.toUpperCase()}</span>`);
-        for (let s in card.debuffs) lines.push(`<span style="color:#c0392b">${card.debuffs[s]} ${s.toUpperCase()}</span>`);
+        for (let s in card.debuffs) lines.push(`<span style="color:#9e3322">${card.debuffs[s]} ${s.toUpperCase()}</span>`);
         card.statText = lines.join('<br>');
 
         return card;
@@ -752,7 +819,72 @@
         broadcastState();
     }
 
-    function clean(s) { return String(s || '').replace(/[<>&"'`]/g, '').trim().slice(0, 16); }
+    // ---- chat/name filter (Dutch + English): bad words become ####
+    const LEET = { '0': 'o', '1': 'i', '!': 'i', '3': 'e', '4': 'a', '@': 'a', '5': 's', '$': 's' };
+    const wnorm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[01!345@$]/g, m => LEET[m]).replace(/[^a-z]/g, '').replace(/(.)\1+/g, '$1');
+    const BAD_SUB = ['kanker', 'tering', 'tyfus', 'klootzak', 'flikker', 'mongool', 'neuk', 'godver', 'fuck', 'shit', 'bitch', 'cunt', 'nigg', 'fagg', 'whore', 'slut', 'asshole', 'bastard', 'pussy', 'retard', 'motherfuck'].map(wnorm);
+    const BAD_EXACT = new Set(['kut', 'kutje', 'kutten', 'lul', 'lullen', 'lulletje', 'pik', 'tiet', 'tieten', 'eikel', 'hoer', 'hoeren', 'hoertje', 'dick', 'cock', 'gvd', 'kkr', 'tbc'].map(wnorm).filter(x => x !== 'tbc'));
+    function censor(text) {
+        return String(text).split(/(\s+)/).map(t => {
+            if (!t.trim()) return t;
+            let n = wnorm(t);
+            return n && (BAD_EXACT.has(n) || BAD_SUB.some(s => n.includes(s))) ? '#'.repeat(Math.min(t.length, 12)) : t;
+        }).join('');
+    }
+
+    // ---- visible events: card gained/lost, HP, wins, admin actions
+    let lastEv = 0, evPrimed = false, flashUntil = {};
+    function addEvent(t, p, d) {
+        gameState.evSeq = (gameState.evSeq || 0) + 1;
+        (gameState.events = gameState.events || []).push(Object.assign({ id: gameState.evSeq, t, pid: p ? p.id : '', name: p ? p.name : '' }, d || {}));
+        if (gameState.events.length > 10) gameState.events.shift();
+    }
+    const cardInfo = c => ({ title: c.title, icon: c.icon, rarity: c.rarity, variant: c.variant });
+    function gainCard(p, c) { p.cards.push(c); addEvent('card+', p, cardInfo(c)); }
+    function toast(html, kind) {
+        let st = document.getElementById('toast-stack'), d = document.createElement('div');
+        d.className = 'toast ' + (kind || ''); d.innerHTML = html;
+        st.appendChild(d); setTimeout(() => d.remove(), 3200);
+    }
+    function cardToast(e, gain) {
+        let st = document.getElementById('toast-stack'), d = document.createElement('div');
+        d.className = 'card-toast ' + (gain ? 'gain' : 'loss') + ' rarity-' + e.rarity;
+        d.innerHTML = `<div class="ct-head">${gain ? 'Kaart ontvangen' : 'Kaart verloren'}</div><div class="ct-icon">${e.icon}</div><div class="ct-title">${e.title}</div>${e.variant && e.variant !== 'None' ? `<div class="ct-var">${e.variant}</div>` : ''}`;
+        st.appendChild(d); setTimeout(() => d.remove(), 3100);
+    }
+    function popFx(id, txt, color, good) {
+        let el = document.getElementById('player-card-' + id);
+        if (!el) return;
+        let pop = document.createElement('div');
+        pop.className = 'target-damage-pop'; pop.style.color = color; pop.innerText = txt;
+        el.appendChild(pop); setTimeout(() => pop.remove(), 1200);
+        let cls = good ? 'fx-gain' : 'fx-loss';
+        el.classList.add(cls); setTimeout(() => el.classList.remove(cls), 1000);
+    }
+    function playEvent(e) {
+        let mine = e.pid === myId, G = '#9ccf6a', R = '#e0705a';
+        flashUntil[e.pid] = Date.now() + 1500;
+        if (e.t === 'card+') { beep(520, 0.12, 'triangle', 0.08); setTimeout(() => beep(780, 0.18, 'triangle', 0.08), 120); mine ? cardToast(e, true) : toast(`${e.name} kreeg ${e.icon} ${e.title}`); popFx(e.pid, '+ KAART', G, true); }
+        else if (e.t === 'card-') { beep(200, 0.3, 'sawtooth', 0.07); mine ? cardToast(e, false) : toast(`${e.name} verloor ${e.icon} ${e.title}`, 'bad'); popFx(e.pid, '− KAART', R, false); }
+        else if (e.t === 'clear') { beep(160, 0.35, 'sawtooth', 0.07); toast(mine ? 'Al je kaarten zijn gewist' : `${e.name} verloor alle kaarten`, 'bad'); popFx(e.pid, '− ' + e.n + ' KAARTEN', R, false); }
+        else if (e.t === 'hp') { beep(e.v > 0 ? 600 : 220, 0.15, 'triangle', 0.07); popFx(e.pid, (e.v > 0 ? '+' : '') + e.v + ' HP', e.v > 0 ? G : R, e.v > 0); }
+        else if (e.t === 'wins') popFx(e.pid, (e.v > 0 ? '+' : '') + e.v + ' 🏆', e.v > 0 ? G : R, e.v > 0);
+        else if (e.t === 'revive') popFx(e.pid, 'HERSTELD', G, true);
+        else if (e.t === 'kill') popFx(e.pid, 'UIT', R, false);
+        else if (e.t === 'win') toast(`${e.name} wint de ronde (admin)`, 'admin');
+        else if (e.t === 'grant') toast(mine ? (e.on ? '👑 Je bent nu admin' : 'Je admin-rechten zijn ingetrokken') : `${e.name}: ${e.on ? 'nu admin' : 'geen admin meer'}`, 'admin');
+        else if (e.t === 'global') toast('🛠️ ' + e.text, 'admin');
+    }
+    function processEvents() {
+        try {
+            let ev = gameState.events || [];
+            if (!evPrimed) { evPrimed = true; lastEv = ev.length ? ev[ev.length - 1].id : 0; return; }
+            ev.filter(e => e.id > lastEv).forEach(playEvent);
+            if (ev.length) lastEv = Math.max(lastEv, ev[ev.length - 1].id);
+        } catch (err) {}
+    }
+
+    function clean(s) { return censor(String(s || '').replace(/[<>&"'`]/g, '').trim().slice(0, 16)); }
 
     function handleClientMessage(conn, data) {
         if (!data || typeof data !== 'object') return;
@@ -793,7 +925,7 @@
             let ch = gameState.cardChoicesMap[conn.peer], c = ch && ch[data.cardIndex];
             let p = gameState.players.find(x => x.id === conn.peer);
             if (!c || !p) return;
-            p.cards.push(c);
+            gainCard(p, c);
             advanceCardPick();
         }
         if (data.type === 'ADMIN') {
@@ -815,12 +947,12 @@
             </div>
         `).join('');
         let log = document.getElementById('chat-log');
-        log.innerHTML = (gameState.chat || []).map(m => m.n ? `<div><b style="color:#f1c40f">${m.n}:</b> ${m.t}</div>` : `<div style="color:#888"><i>${m.t}</i></div>`).join('');
+        log.innerHTML = (gameState.chat || []).map(m => m.n ? `<div><b style="color:#e0a93b">${m.n}:</b> ${m.t}</div>` : `<div style="color:#888"><i>${m.t}</i></div>`).join('');
         log.scrollTop = log.scrollHeight;
     }
 
     let timerKey = '', deadline = 0, localDeadline = 0, lastSeen = {};
-    function addChat(n, t) { (gameState.chat = gameState.chat || []).push({ n, t }); if (gameState.chat.length > 30) gameState.chat.shift(); }
+    function addChat(n, t) { if (n) t = censor(t); (gameState.chat = gameState.chat || []).push({ n, t }); if (gameState.chat.length > 30) gameState.chat.shift(); }
     function sendChat(sfx = '') {
         let i = document.getElementById('chat-input' + sfx), t = i.value.replace(/[<>&]/g, '').trim().slice(0, 200);
         if (!t) return;
@@ -839,6 +971,7 @@
         gameState.timeLeft = deadline ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : 0;
         localDeadline = Date.now() + gameState.timeLeft * 1000;
         hostConnections.forEach(conn => { if (conn.open) conn.send({ type: 'STATE_UPDATE', state: gameState }); });
+        setTimeout(processEvents, 30);
         renderAdminBar();
         { let ae = document.activeElement; if (isHost && !(ae && ae.tagName === 'INPUT')) renderAdminPanel(); }
         if (gameState.phase === 'LOBBY') updateLobbyUI(); else renderGameUI();
@@ -855,7 +988,7 @@
             if (ts.length) performAttack(id, ts[Math.floor(Math.random() * ts.length)].id);
         } else if (gameState.phase === 'CARD_PICK') {
             let id = gameState.cardPickQueue[gameState.pickerIndex], p = gameState.players.find(x => x.id === id), ch = gameState.cardChoicesMap[id];
-            if (p && ch) { p.cards.push(ch[Math.floor(Math.random() * ch.length)]); advanceCardPick(); }
+            if (p && ch) { gainCard(p, ch[Math.floor(Math.random() * ch.length)]); advanceCardPick(); }
         }
     }
 
@@ -863,7 +996,7 @@
         let l = [], ok = s => ['dmg', 'atk', 'hp', 'def'].includes(s);
         for (let s in c.buffs) if (ok(s)) l.push(`<span style="color:#1e8449">+${Number(c.buffs[s])} ${s.toUpperCase()}</span>`);
         for (let s in c.mults) if (ok(s)) l.push(`<span style="color:#b7950b">x${Number(c.mults[s])} ${s.toUpperCase()}</span>`);
-        for (let s in c.debuffs) if (ok(s)) l.push(`<span style="color:#c0392b">${Number(c.debuffs[s])} ${s.toUpperCase()}</span>`);
+        for (let s in c.debuffs) if (ok(s)) l.push(`<span style="color:#9e3322">${Number(c.debuffs[s])} ${s.toUpperCase()}</span>`);
         return l.join('<br>');
     }
     function previewText(p, c) {
@@ -873,7 +1006,7 @@
     }
 
     function joinGame() {
-        rejected = false; lastSeenRoll = 0;
+        rejected = false; lastSeenRoll = 0; evPrimed = false;
         myName = clean(document.getElementById('username').value); try{localStorage.setItem('brawlerName',myName)}catch(e){}
         let hostCode = document.getElementById('join-code').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
         if (!myName || !hostCode) return setConnStatus("menu-conn-status","⚠️ Vul je naam en de host-code in!","error");
@@ -914,7 +1047,7 @@
                 if (data.type === 'REJECT') { rejected = true; showScreen('screen-menu'); setConnStatus('menu-conn-status', '❌ ' + data.reason, 'error'); return; }
                 if (data.type === 'STATE_UPDATE') {
                     gameState = JSON.parse(JSON.stringify(data.state), (k, v) => typeof v !== 'string' ? v : (k === 't' ? v.replace(/[<>&]/g, '') : v.replace(/[<>&"'`\\]/g, '')));
-                    localDeadline = Date.now() + (gameState.timeLeft || 0) * 1000; renderAdminBar();
+                    localDeadline = Date.now() + (gameState.timeLeft || 0) * 1000; renderAdminBar(); setTimeout(processEvents, 30);
                     if (gameState.phase === 'LOBBY') {
                         showScreen('screen-lobby');
                         updateLobbyUI();
@@ -1265,7 +1398,7 @@
         }
 
         document.getElementById('status-banner').innerText = gameState.statusMessage || "Spel bezig...";
-        { let cg = document.getElementById('chat-log-g'); cg.innerHTML = (gameState.chat || []).map(m => m.n ? `<div><b style="color:#f1c40f">${m.n}:</b> ${m.t}</div>` : `<div style="color:#888"><i>${m.t}</i></div>`).join(''); cg.scrollTop = cg.scrollHeight; }
+        { let cg = document.getElementById('chat-log-g'); cg.innerHTML = (gameState.chat || []).map(m => m.n ? `<div><b style="color:#e0a93b">${m.n}:</b> ${m.t}</div>` : `<div style="color:#888"><i>${m.t}</i></div>`).join(''); cg.scrollTop = cg.scrollHeight; }
         document.getElementById('combat-log').innerHTML = (gameState.log || []).slice().reverse().map((l, i) => `<div style="opacity:${1 - i * 0.15}">${l}</div>`).join('');
 
         let activeTurnPlayerId = gameState.turnOrder ? gameState.turnOrder[gameState.turnIndex] : null;
@@ -1319,10 +1452,10 @@
                 if (me.hp <= 0) {
                     actionArea.innerHTML = `<h3>Je bent uitgeschakeld deze ronde! Wacht op de volgende ronde.</h3>`;
                 } else {
-                    let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3><button ${attackCooldownActive ? 'disabled' : ''} onclick="sendDefend()" style="background:#2980b9">🛡️ Verdedigen (+4 AC)</button><div class="attack-buttons-grid">`;
+                    let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3><button ${attackCooldownActive ? 'disabled' : ''} onclick="sendDefend()" style="background:#3d6f78">🛡️ Verdedigen (+4 AC)</button><div class="attack-buttons-grid">`;
                     gameState.players.forEach(p => {
                         if (p.id !== myId && p.hp > 0) {
-                            html += `<button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}','normal')">${attackCooldownActive ? 'Cooldown...' : 'Val ' + p.name + ' aan (' + hitChance(me, p) + '% kans)'}</button><button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}','heavy')" style="background:#8e44ad">${attackCooldownActive ? '...' : '🔨 Zwaar (' + hitChance(me, p, true) + '%, x1.5 dmg)'}</button>`;
+                            html += `<button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}','normal')">${attackCooldownActive ? 'Cooldown...' : 'Val ' + p.name + ' aan (' + hitChance(me, p) + '% kans)'}</button><button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}','heavy')" style="background:#7a4a6d">${attackCooldownActive ? '...' : '🔨 Zwaar (' + hitChance(me, p, true) + '%, x1.5 dmg)'}</button>`;
                         }
                     });
                     html += `</div>`;
@@ -1334,7 +1467,7 @@
             }
         } else if (gameState.phase === 'GAME_OVER') {
             if (!overPlayed) { overPlayed = true; [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.25, 'triangle', 0.08), i * 150)); }
-            let html = `<h2 style="color:#f1c40f; text-align:center;">${gameState.statusMessage}</h2>`;
+            let html = `<h2 style="color:#e0a93b; text-align:center;">${gameState.statusMessage}</h2>`;
             if (isHost) {
                 html += `<div style="text-align:center;"><button class="menu-btn" onclick="returnToLobby()">Play Again (Terug naar Lobby & Settings)</button></div>`;
             } else {
@@ -1362,7 +1495,7 @@
             let pId = gameState.cardPickQueue[gameState.pickerIndex];
             let p = gameState.players.find(x => x.id === pId);
             if (p && gameState.cardChoicesMap[pId]) {
-                p.cards.push(gameState.cardChoicesMap[pId][idx]);
+                gainCard(p, gameState.cardChoicesMap[pId][idx]);
             }
             advanceCardPick();
         } else {
@@ -1434,8 +1567,11 @@
         renderAdminPanel();
     }
     function closeAdminPanel() {
-        document.getElementById('admin-panel').style.display = 'none';
+        let el = document.getElementById('admin-panel');
+        if (el.style.display !== 'block' || el.classList.contains('closing')) return;
+        el.classList.add('closing');
         document.getElementById('admin-fab').style.right = '0';
+        setTimeout(() => { el.style.display = 'none'; el.classList.remove('closing'); }, 200);
     }
     function renderAdminBar() {
         let c = gameState.customMode, adm = isAdmin(), show = isHost || (c && adm);
@@ -1444,7 +1580,7 @@
         fab.innerText = '🛠️ ADMIN' + (isHost ? (c ? ' (aan)' : ' (uit)') : '');
         if (!show && document.getElementById('admin-panel').style.display === 'block') closeAdminPanel();
         b.style.display = (!adm && (c || gameState.paused)) ? 'block' : 'none';
-        b.innerHTML = `<div style="color:#e67e22">${c ? '🛠️ Admin modus actief. ' : ''}${gameState.paused ? '⏸️ Gepauzeerd door de host' : ''}</div>`;
+        b.innerHTML = `<div style="color:#d9782d">${c ? '🛠️ Admin modus actief. ' : ''}${gameState.paused ? '⏸️ Gepauzeerd door de host' : ''}</div>`;
         let ae = document.activeElement, typing = ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT');
         if (!typing) {
             renderAdminPanel();
@@ -1457,13 +1593,13 @@
         let c = gameState.customMode, inGame = gameState.phase !== 'LOBBY';
         const bt = (js, l, st) => `<button onclick="${js}" style="width:auto;display:inline-block;margin:2px;padding:6px 10px;min-height:32px;${st || ''}">${l}</button>`;
         let out = `<div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">🛠️ Admin</h3>${bt('closeAdminPanel()', '✖')}</div>`;
-        if (isHost) out += bt('toggleCustom()', `Admin modus: ${c ? 'AAN' : 'UIT'}`, `background:${c ? '#e67e22' : '#3a3a4c'}`);
+        if (isHost) out += bt('toggleCustom()', `Admin modus: ${c ? 'AAN' : 'UIT'}`, `background:${c ? '#d9782d' : '#3d2f25'}`);
         if (!c) { document.getElementById('admin-panel-body').innerHTML = out + '<p style="color:#aaa">Admin modus staat uit. Zet hem aan om kaarten, stats en admin-rechten uit te delen.</p>'; return; }
         out += '<div>' + bt("adminAll('card')", '🎁 Kaart voor iedereen') + bt("adminAll('clear')", '🗑️ Wis alle kaarten')
             + (inGame ? bt("adminAll('heal')", '❤️ Genees iedereen') + bt("adminAll('restart')", '🔄 Ronde herstarten') + bt("adminAll('pause')", gameState.paused ? '▶️ Hervat' : '⏸️ Pauze') : '') + '</div>';
         out += gameState.players.map(p => {
             let st = calculatePlayerStats(p), id = p.id, q = (k, v, l) => bt(`adminPlayer('${id}','${k}',${v})`, l);
-            return `<div style="background:#1e1e24;border-radius:8px;padding:8px;margin:6px 0"><b>${p.admin ? '👑 ' : ''}${p.name}${p.left ? ' (weg)' : ''}</b> ❤️${p.hp}/${st.hp} 🏆${p.wins} 🃏${p.cards.length}<br>`
+            return `<div class="arow${Date.now() < (flashUntil[p.id] || 0) ? ' flash' : ''}" style="background:#17110d;border-radius:8px;padding:8px;margin:6px 0"><b>${p.admin ? '👑 ' : ''}${p.name}${p.left ? ' (weg)' : ''}</b> ❤️${p.hp}/${st.hp} 🏆${p.wins} 🃏${p.cards.length}<br>`
                 + q('hp', 1, '❤️+') + q('hp', -1, '❤️-') + q('wins', 1, '🏆+') + q('wins', -1, '🏆-') + q('rand', 0, '🎁')
                 + (inGame ? q('revive', 0, '✨') + q('kill', 0, '💀') + (gameState.phase === 'TURN' ? q('win', 0, '🥇') : '') : '')
                 + bt(`viewPlayerCards('${id}')`, '⚙️ Details')
@@ -1476,8 +1612,8 @@
             + '<div style="font-size:12px;color:#aaa">Start-HP/AC gelden vanaf de volgende ronde.</div></details>';
         out += `<details ${admCat ? 'open' : ''} ontoggle="admCat = this.open" style="margin-top:10px"><summary style="cursor:pointer"><b>🃏 Specifieke kaart geven</b></summary>
             <div style="margin:6px 0">Variant: <select onchange="admVar = this.value; renderAdminPanel()" style="width:auto;display:inline-block">${['None', 'Blessed', 'Cursed'].map(x => `<option value="${x}" ${x === admVar ? 'selected' : ''}>${x === 'None' ? 'Normaal' : x}</option>`).join('')}</select> Aan: <select onchange="admTarget = this.value" style="width:auto;display:inline-block">${live.map(p => `<option value="${p.id}" ${p.id === admTarget ? 'selected' : ''}>${p.name}</option>`).join('')}</select></div>`
-            + Object.keys(CARD_TEMPLATES).map(r => `<div style="margin-top:6px;color:#f1c40f"><b>${r}</b></div>` + CARD_TEMPLATES[r].map((t, i) =>
-                `<button onclick="adminGive('${r}',${i})" style="width:100%;text-align:left;margin:2px 0;padding:6px 10px;min-height:32px;background:#1e1e24">${t.icon} <b>${t.title}</b> <span style="font-size:12px">${cardText(buildCard(r, i, admVar)).replace(/<br>/g, ' · ')}</span></button>`).join('')).join('')
+            + Object.keys(CARD_TEMPLATES).map(r => `<div style="margin-top:6px;color:#e0a93b"><b>${r}</b></div>` + CARD_TEMPLATES[r].map((t, i) =>
+                `<button onclick="adminGive('${r}',${i})" style="width:100%;text-align:left;margin:2px 0;padding:6px 10px;min-height:32px;background:#17110d">${t.icon} <b>${t.title}</b> <span style="font-size:12px">${cardText(buildCard(r, i, admVar)).replace(/<br>/g, ' · ')}</span></button>`).join('')).join('')
             + '</details>';
         document.getElementById('admin-panel-body').innerHTML = out;
     }
@@ -1502,8 +1638,8 @@
         if (!isHost || !gameState.customMode) return;
         let ps = gameState.players.filter(p => !p.left), msg = '';
         if (kind === 'heal') { ps.forEach(p => p.hp = calculatePlayerStats(p).hp); msg = 'Iedereen is genezen'; }
-        else if (kind === 'card') { ps.forEach(p => p.cards.push(generateRandomCard())); msg = 'Iedereen kreeg een kaart'; }
-        else if (kind === 'clear') { ps.forEach(p => p.cards = []); msg = 'Alle kaarten gewist'; }
+        else if (kind === 'card') { ps.forEach(p => gainCard(p, generateRandomCard())); msg = 'Iedereen kreeg een kaart'; }
+        else if (kind === 'clear') { ps.forEach(p => { if (p.cards.length) addEvent('clear', p, { n: p.cards.length }); p.cards = []; }); msg = 'Alle kaarten gewist'; }
         else if (kind === 'pause') { gameState.paused = !gameState.paused; msg = gameState.paused ? 'Spel gepauzeerd' : 'Spel hervat'; }
         else if (kind === 'set') {
             let L = SETTING_LIMITS[a && a.key];
@@ -1516,7 +1652,7 @@
         }
         else if (kind === 'restart') { if (gameState.phase !== 'TURN' && gameState.phase !== 'CARD_PICK') return; gameState.busy = false; startCombatPhase(); msg = 'Ronde herstart'; }
         else return;
-        addLog('🛠️ ' + msg);
+        addLog('🛠️ ' + msg); if (kind !== 'card' && kind !== 'clear') addEvent('global', null, { text: msg });
         adminDone();
     }
     function execPlayer(id, k, v, x) {
@@ -1524,18 +1660,18 @@
         let p = gameState.players.find(y => y.id === id);
         if (!p) return;
         let msg = '', n = Math.max(-5, Math.min(5, Number(v) || 0));
-        if (k === 'hp') { p.hp = Math.max(0, Math.min(999, p.hp + n)); msg = `${p.name} HP ${n > 0 ? '+' : ''}${n}`; }
-        else if (k === 'wins') { p.wins = Math.max(0, p.wins + n); msg = `${p.name} wins ${n > 0 ? '+' : ''}${n}`; }
-        else if (k === 'revive') { p.hp = calculatePlayerStats(p).hp; msg = `${p.name} is hersteld`; }
-        else if (k === 'kill') { p.hp = 0; msg = `${p.name} is uitgeschakeld`; }
-        else if (k === 'win') { if (gameState.phase !== 'TURN') return; gameState.players.forEach(y => { if (y !== p) y.hp = 0; }); p.hp = Math.max(1, p.hp); msg = `${p.name} wint de ronde`; }
-        else if (k === 'rand') { p.cards.push(generateRandomCard()); msg = `${p.name} kreeg een random kaart`; }
-        else if (k === 'rm') { let c = p.cards.splice(Number(v), 1)[0]; if (!c) return; msg = `${p.name} verloor kaart ${c.title}`; }
+        if (k === 'hp') { p.hp = Math.max(0, Math.min(999, p.hp + n)); msg = `${p.name} HP ${n > 0 ? '+' : ''}${n}`; addEvent('hp', p, { v: n }); }
+        else if (k === 'wins') { p.wins = Math.max(0, p.wins + n); msg = `${p.name} wins ${n > 0 ? '+' : ''}${n}`; addEvent('wins', p, { v: n }); }
+        else if (k === 'revive') { p.hp = calculatePlayerStats(p).hp; msg = `${p.name} is hersteld`; addEvent('revive', p); }
+        else if (k === 'kill') { p.hp = 0; msg = `${p.name} is uitgeschakeld`; addEvent('kill', p); }
+        else if (k === 'win') { if (gameState.phase !== 'TURN') return; gameState.players.forEach(y => { if (y !== p) y.hp = 0; }); p.hp = Math.max(1, p.hp); msg = `${p.name} wint de ronde`; addEvent('win', p); }
+        else if (k === 'rand') { gainCard(p, generateRandomCard()); msg = `${p.name} kreeg een random kaart`; }
+        else if (k === 'rm') { let c = p.cards.splice(Number(v), 1)[0]; if (!c) return; addEvent('card-', p, cardInfo(c)); msg = `${p.name} verloor kaart ${c.title}`; }
         else if (k === 'give') {
             let parts = String(v).split('|'), variant = ['Blessed', 'Cursed'].includes(parts[2]) ? parts[2] : 'None';
             let card = buildCard(parts[0], Number(parts[1]), variant);
             if (!card) return;
-            p.cards.push(card);
+            gainCard(p, card);
             msg = `${p.name} kreeg ${variant !== 'None' ? variant + ' ' : ''}${card.title}`;
         }
         else if (k === 'custom') {
@@ -1545,9 +1681,9 @@
                 let q = Math.max(-99, Math.min(99, parseInt(x[s]) || 0));
                 if (q > 0) card.buffs[s] = q; else if (q < 0) card.debuffs[s] = q;
             });
-            p.cards.push(card); msg = `${p.name} kreeg kaart "${card.title}"`;
+            gainCard(p, card); msg = `${p.name} kreeg kaart "${card.title}"`;
         }
-        else if (k === 'grant') { if (p.id === myId) return; p.admin = !p.admin; msg = `${p.name} ${p.admin ? 'is nu admin' : 'is geen admin meer'}`; }
+        else if (k === 'grant') { if (p.id === myId) return; p.admin = !p.admin; addEvent('grant', p, { on: p.admin }); msg = `${p.name} ${p.admin ? 'is nu admin' : 'is geen admin meer'}`; }
         else return;
         addLog('🛠️ ' + msg);
         if (gameState.phase === 'TURN' && !gameState.busy) checkRoundEnd(false);
@@ -1560,7 +1696,7 @@
         if (gameState.customMode) {
             const b = (k, v, l) => `<button onclick="adminPlayer('${id}','${k}',${v})" style="width:auto;display:inline-block;margin:2px">${l}</button>`;
             const f = (s) => `${s.toUpperCase()} <input id="adm-${s}" type="number" value="0" style="width:56px;display:inline-block;margin:2px">`;
-            out += `<div style="margin:8px 0;padding:8px;border:1px dashed #e67e22;border-radius:8px"><b>🛠️ Admin</b><br>${b('hp', 1, '❤️ +1')}${b('hp', -1, '❤️ -1')}${b('wins', 1, '🏆 +1')}${b('wins', -1, '🏆 -1')}${b('rand', 0, '🎁 Random kaart')}`
+            out += `<div style="margin:8px 0;padding:8px;border:1px dashed #d9782d;border-radius:8px"><b>🛠️ Admin</b><br>${b('hp', 1, '❤️ +1')}${b('hp', -1, '❤️ -1')}${b('wins', 1, '🏆 +1')}${b('wins', -1, '🏆 -1')}${b('rand', 0, '🎁 Random kaart')}`
                 + `<br><input id="adm-title" placeholder="Kaartnaam" maxlength="16" style="width:120px;display:inline-block;margin:2px"> ${f('hp')}${f('def')}${f('dmg')}${f('atk')}`
                 + `<button onclick="adminPlayer('${id}','custom',0)" style="width:auto;display:inline-block;margin:2px">➕ Eigen kaart geven</button></div>`;
         }
@@ -1589,7 +1725,7 @@
             container.innerHTML = "<p>Deze speler heeft nog geen kaarten.</p>";
         } else {
             container.innerHTML = player.cards.map((c, ci) => `
-                <div style="background:#1e1e24; padding:10px; margin:6px 0; border-radius:6px; border-left:4px solid ${c.rarity === 'Legendary' ? '#f1c40f' : '#3498db'};">
+                <div style="background:#17110d; padding:10px; margin:6px 0; border-radius:6px; border-left:4px solid ${c.rarity === 'Legendary' ? '#e0a93b' : '#4f8a8b'};">
                     ${isAdmin() && gameState.customMode ? `<button class="btn-kick" style="float:right;width:auto" onclick="adminPlayer('${player.id}','rm',${ci})">✖</button>` : ''}<strong>${c.rarity} ${c.variant !== 'None' ? `(${c.variant})` : ''}</strong> - ${c.title}<br>
                     ${cardText(c)}
                 </div>
