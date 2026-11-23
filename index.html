@@ -272,6 +272,35 @@
 #mute-btn{position:absolute;top:12px;right:12px;margin:0;padding:6px 10px;min-height:36px;background:#3a3a4c}
 .game-card.rarity-Rare{box-shadow:0 0 12px #3498db}
 .modal{z-index:100!important}
+
+/* ---- layout fixes ---- */
+.container > h1 { padding-right: 56px; }
+.players-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.settings-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.stat-box { flex: 1 1 90px; }
+.player-card { min-width: 0; overflow-wrap: anywhere; }
+#lobby-players .player-card { flex: 0 1 170px !important; }
+.attack-buttons-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.attack-buttons-grid button { width: 100%; max-width: none; margin: 0; font-size: 14px; padding: 8px 10px; line-height: 1.2; }
+#game-action-area > button { display: block; width: 100%; margin: 6px 0; }
+#dice-area { min-height: 96px; }
+.combat-log { min-height: 112px; max-height: 112px; overflow: hidden; }
+.game-card { overflow-wrap: anywhere; }
+.card-preview { font-size: 12px; text-align: center; width: 100%; margin-top: 4px; color: #222; }
+.chatrow { display: flex; gap: 6px; align-items: center; }
+.chatrow input { flex: 1; min-width: 0; max-width: none !important; width: auto !important; margin: 5px 0; }
+.chatrow button { margin: 5px 0; flex: 0 0 auto; }
+@media (max-width: 768px) { .game-card { max-width: 260px; } }
+@media (max-width: 480px) { .game-card { flex-wrap: wrap; max-width: none; } .card-preview { flex: 1 1 100%; order: 9; } }
+@media (max-width: 340px) { .attack-buttons-grid { grid-template-columns: 1fr; } }
+#timer-badge:empty { min-height: 0 !important; }
+.combat-log { min-height: 88px; max-height: 88px; }
+.dice-container { margin: 10px 0; }
+.stat-boxes-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.stat-box { flex: none; }
+@media (max-width: 560px) { .stat-boxes-group { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { #admin-fab { top: auto; bottom: 24px; padding: 10px 6px; font-size: 13px; min-height: 0; } }
+@media (min-width: 481px) { .game-card { justify-content: flex-start; } .game-card .card-title { min-height: 2.2em; display: flex; align-items: center; justify-content: center; } .game-card .card-stats { margin-top: auto; padding-top: 8px; } }
 </style>
 </head>
 <body>
@@ -309,8 +338,8 @@
 
         <h3>💬 Lobby chat</h3>
         <div id="chat-log" style="background:#1e1e24;border-radius:8px;padding:10px;height:140px;overflow-y:auto;font-size:14px;margin-bottom:6px"></div>
-        <input type="text" id="chat-input" maxlength="200" placeholder="Typ een bericht..." onkeydown="if(event.key==='Enter')sendChat()" style="max-width:none;width:calc(100% - 100px)">
-        <button onclick="sendChat()" style="margin-right:0">Stuur</button>
+        <div class="chatrow"><input type="text" id="chat-input" maxlength="200" placeholder="Typ een bericht..." onkeydown="if(event.key==='Enter')sendChat()" style="max-width:none;width:calc(100% - 100px)">
+        <button onclick="sendChat()">Stuur</button></div>
         <div id="host-settings-area" class="settings-box" style="display:none;">
             <h3>⚙️ Game Instellingen</h3>
             <div class="settings-grid">
@@ -384,8 +413,8 @@
 
                 <details style="margin:8px 0"><summary style="cursor:pointer;color:#f1c40f">💬 Chat</summary>
                     <div id="chat-log-g" style="background:#1e1e24;border-radius:8px;padding:8px;height:110px;overflow-y:auto;font-size:14px;margin:6px 0"></div>
-                    <input type="text" id="chat-input-g" maxlength="200" placeholder="Bericht..." onkeydown="if(event.key==='Enter')sendChat('-g')" style="max-width:none;width:calc(100% - 100px)">
-                    <button onclick="sendChat('-g')" style="margin-right:0">Stuur</button></details>
+                    <div class="chatrow"><input type="text" id="chat-input-g" maxlength="200" placeholder="Bericht..." onkeydown="if(event.key==='Enter')sendChat('-g')" style="max-width:none;width:calc(100% - 100px)">
+                    <button onclick="sendChat('-g')">Stuur</button></div></details>
                 <div id="combat-log" class="combat-log"></div>
                 <div id="game-action-area">
                     <h3>Wachten op het spel...</h3>
@@ -770,7 +799,7 @@
         if (data.type === 'ADMIN') {
             let s = gameState.players.find(x => x.id === conn.peer), a = data.a;
             if (!s || !s.admin || !gameState.customMode || !a || typeof a !== 'object') return;
-            if (data.fn === 'all') execAll(String(a.kind));
+            if (data.fn === 'all') execAll(String(a.kind), a);
             else if (data.fn === 'player' && a.k !== 'grant') execPlayer(String(a.id), String(a.k), a.v, a.x);
         }
         if (data.type === 'DEFEND') performDefend(conn.peer);
@@ -1135,7 +1164,7 @@
         el.appendChild(p); setTimeout(() => p.remove(), 1200);
     }
     function onNewRoll(lr) {
-        document.getElementById('dice-area').style.display = 'block';
+        document.getElementById('dice-area').style.display = 'block'; document.getElementById('dice-area').style.visibility = 'visible';
         if (lr.id === lastSeenRoll) return;
         lastSeenRoll = lr.id;
         animateDice(lr);
@@ -1165,10 +1194,10 @@
     function triggerDamageEffect(dmgValue, isCrit, targetPlayerId, wasKilled) {
         beep(wasKilled ? 110 : isCrit ? 880 : 200, wasKilled ? 0.5 : 0.15, 'sawtooth', 0.07);
         document.body.classList.add('flash-damage');
-        if (isCrit || wasKilled) document.body.classList.add('shake');
+        if (isCrit || wasKilled) document.querySelector('.container').classList.add('shake');
         setTimeout(() => {
             document.body.classList.remove('flash-damage');
-            document.body.classList.remove('shake');
+            document.querySelector('.container').classList.remove('shake');
         }, 300);
 
         const targetCardElem = document.getElementById(`player-card-${targetPlayerId}`);
@@ -1257,7 +1286,7 @@
         if (gameState.phase === 'TURN' && gameState.lastRoll) {
             onNewRoll(gameState.lastRoll);
         } else {
-            diceArea.style.display = 'none';
+            diceArea.style.display = gameState.phase === 'TURN' ? 'block' : 'none'; diceArea.style.visibility = 'hidden';
         }
 
         const actionArea = document.getElementById('game-action-area');
@@ -1276,7 +1305,7 @@
                         <div class="card-rarity-bar">${c.rarity}</div>
                         <div class="card-title">${c.title}</div>
                         <div class="card-icon">${c.icon}</div>
-                        <div class="card-stats">${cardText(c)}</div><div style="font-size:12px;margin-top:4px;text-align:center">${previewText(me, c)}</div>
+                        <div class="card-stats">${cardText(c)}</div><div class="card-preview">${previewText(me, c)}</div>
                     </div>`;
                 });
                 html += `</div>`;
@@ -1367,7 +1396,29 @@
     }
 
     // ================= HOST ADMIN / CUSTOM MODE =================
-    let admTarget = '', admCat = false, modalPid = '';
+    let admTarget = '', admCat = false, admSet = false, admVar = 'None', modalPid = '';
+    const SETTING_LIMITS = { targetWins: [1, 50, '🏆 Doel-wins', 1, 'setting-target-wins'], startHp: [1, 999, '❤️ Start-HP', 1, 'setting-start-hp'], startDef: [1, 99, '🛡️ Start-AC', 1, 'setting-start-def'],
+        cardCount: [1, 6, '🃏 Kaartkeuzes', 1, 'setting-card-count'], turnTime: [0, 300, '⏱️ Timer (sec, 0 = uit)', 5, 'setting-turn-time'], rollSpeed: [100, 3000, '🎲 Rol-animatie (ms)', 100, 'setting-roll-speed'] };
+    function buildCard(r, i, variant) {
+        let t = (CARD_TEMPLATES[r] || [])[i];
+        if (!t) return null;
+        let card = { rarity: r, variant: variant, title: t.title, icon: t.icon, buffs: Object.assign({}, t.buffs), debuffs: Object.assign({}, t.debuffs), mults: Object.assign({}, t.mults), statText: '' };
+        if (variant === 'Blessed') {
+            for (let s in card.buffs) card.buffs[s] = Math.ceil(card.buffs[s] * 1.5);
+            for (let s in card.mults) card.mults[s] = Math.min(2, card.mults[s]);
+        }
+        if (variant === 'Cursed') {
+            for (let s in card.buffs) card.buffs[s] *= 2;
+            for (let s in card.debuffs) card.debuffs[s] *= 2;
+            for (let s in card.mults) card.mults[s] = Math.min(2, card.mults[s]);
+            if (!Object.keys(card.debuffs).length) {
+                let used = Object.keys(card.buffs).concat(Object.keys(card.mults));
+                card.debuffs[['dmg', 'atk', 'hp', 'def'].filter(s => !used.includes(s))[0] || 'def'] = -2;
+            }
+        }
+        return card;
+    }
+    function adminSetting(key, d) { adm('all', { kind: 'set', key, d }); }
     function isAdmin() { return isHost || ((gameState.players.find(p => p.id === myId) || {}).admin === true); }
     function toggleCustom() {
         if (!isHost) return;
@@ -1420,21 +1471,24 @@
         }).join('');
         let live = gameState.players.filter(p => !p.left);
         if (!live.some(p => p.id === admTarget)) admTarget = live.length ? live[0].id : '';
+        out += `<details ${admSet ? 'open' : ''} ontoggle="admSet = this.open" style="margin-top:10px"><summary style="cursor:pointer"><b>⚙️ Spelinstellingen</b></summary>`
+            + Object.keys(SETTING_LIMITS).map(k => { let L = SETTING_LIMITS[k]; return `<div style="margin:4px 0">${L[2]}: <b>${gameState.settings[k]}</b> ${bt(`adminSetting('${k}',${-L[3]})`, '−')}${bt(`adminSetting('${k}',${L[3]})`, '+')}</div>`; }).join('')
+            + '<div style="font-size:12px;color:#aaa">Start-HP/AC gelden vanaf de volgende ronde.</div></details>';
         out += `<details ${admCat ? 'open' : ''} ontoggle="admCat = this.open" style="margin-top:10px"><summary style="cursor:pointer"><b>🃏 Specifieke kaart geven</b></summary>
-            <div style="margin:6px 0">Aan: <select onchange="admTarget = this.value" style="width:auto;display:inline-block">${live.map(p => `<option value="${p.id}" ${p.id === admTarget ? 'selected' : ''}>${p.name}</option>`).join('')}</select></div>`
+            <div style="margin:6px 0">Variant: <select onchange="admVar = this.value; renderAdminPanel()" style="width:auto;display:inline-block">${['None', 'Blessed', 'Cursed'].map(x => `<option value="${x}" ${x === admVar ? 'selected' : ''}>${x === 'None' ? 'Normaal' : x}</option>`).join('')}</select> Aan: <select onchange="admTarget = this.value" style="width:auto;display:inline-block">${live.map(p => `<option value="${p.id}" ${p.id === admTarget ? 'selected' : ''}>${p.name}</option>`).join('')}</select></div>`
             + Object.keys(CARD_TEMPLATES).map(r => `<div style="margin-top:6px;color:#f1c40f"><b>${r}</b></div>` + CARD_TEMPLATES[r].map((t, i) =>
-                `<button onclick="adminGive('${r}',${i})" style="width:100%;text-align:left;margin:2px 0;padding:6px 10px;min-height:32px;background:#1e1e24">${t.icon} <b>${t.title}</b> <span style="font-size:12px">${cardText(t).replace(/<br>/g, ' · ')}</span></button>`).join('')).join('')
+                `<button onclick="adminGive('${r}',${i})" style="width:100%;text-align:left;margin:2px 0;padding:6px 10px;min-height:32px;background:#1e1e24">${t.icon} <b>${t.title}</b> <span style="font-size:12px">${cardText(buildCard(r, i, admVar)).replace(/<br>/g, ' · ')}</span></button>`).join('')).join('')
             + '</details>';
         document.getElementById('admin-panel-body').innerHTML = out;
     }
 
     // Everything below is executed by the host only; admin clients send {type:'ADMIN'} which the host validates.
     function adm(fn, a) {
-        if (isHost) { if (fn === 'all') execAll(a.kind); else execPlayer(a.id, a.k, a.v, a.x); }
+        if (isHost) { if (fn === 'all') execAll(a.kind, a); else execPlayer(a.id, a.k, a.v, a.x); }
         else if (isAdmin() && clientConn && clientConn.open) clientConn.send({ type: 'ADMIN', fn, a });
     }
     function adminAll(kind) { adm('all', { kind }); }
-    function adminGive(r, i) { if (admTarget) adm('player', { id: admTarget, k: 'give', v: r + '|' + i }); }
+    function adminGive(r, i) { if (admTarget) adm('player', { id: admTarget, k: 'give', v: r + '|' + i + '|' + admVar }); }
     function adminPlayer(id, k, v) {
         let x = null, val = s => { let e = document.getElementById(s); return e ? e.value : ''; };
         if (k === 'custom') x = { title: val('adm-title'), hp: val('adm-hp'), def: val('adm-def'), dmg: val('adm-dmg'), atk: val('adm-atk') };
@@ -1444,13 +1498,22 @@
         if (gameState.phase !== 'LOBBY') updateStatusBanner();
         broadcastState();
     }
-    function execAll(kind) {
+    function execAll(kind, a) {
         if (!isHost || !gameState.customMode) return;
         let ps = gameState.players.filter(p => !p.left), msg = '';
         if (kind === 'heal') { ps.forEach(p => p.hp = calculatePlayerStats(p).hp); msg = 'Iedereen is genezen'; }
         else if (kind === 'card') { ps.forEach(p => p.cards.push(generateRandomCard())); msg = 'Iedereen kreeg een kaart'; }
         else if (kind === 'clear') { ps.forEach(p => p.cards = []); msg = 'Alle kaarten gewist'; }
         else if (kind === 'pause') { gameState.paused = !gameState.paused; msg = gameState.paused ? 'Spel gepauzeerd' : 'Spel hervat'; }
+        else if (kind === 'set') {
+            let L = SETTING_LIMITS[a && a.key];
+            if (!L) return;
+            let val = Math.max(L[0], Math.min(L[1], (Number(gameState.settings[a.key]) || 0) + Math.max(-100, Math.min(100, Number(a.d) || 0))));
+            gameState.settings[a.key] = val;
+            let inp = document.getElementById(L[4]); if (inp) inp.value = val;
+            if (a.key === 'turnTime') timerKey = '';
+            msg = `${L[2]} = ${val}`;
+        }
         else if (kind === 'restart') { if (gameState.phase !== 'TURN' && gameState.phase !== 'CARD_PICK') return; gameState.busy = false; startCombatPhase(); msg = 'Ronde herstart'; }
         else return;
         addLog('🛠️ ' + msg);
@@ -1469,10 +1532,11 @@
         else if (k === 'rand') { p.cards.push(generateRandomCard()); msg = `${p.name} kreeg een random kaart`; }
         else if (k === 'rm') { let c = p.cards.splice(Number(v), 1)[0]; if (!c) return; msg = `${p.name} verloor kaart ${c.title}`; }
         else if (k === 'give') {
-            let parts = String(v).split('|'), t = (CARD_TEMPLATES[parts[0]] || [])[Number(parts[1])];
-            if (!t) return;
-            p.cards.push({ rarity: parts[0], variant: 'None', title: t.title, icon: t.icon, buffs: Object.assign({}, t.buffs), debuffs: Object.assign({}, t.debuffs), mults: Object.assign({}, t.mults), statText: '' });
-            msg = `${p.name} kreeg ${t.title}`;
+            let parts = String(v).split('|'), variant = ['Blessed', 'Cursed'].includes(parts[2]) ? parts[2] : 'None';
+            let card = buildCard(parts[0], Number(parts[1]), variant);
+            if (!card) return;
+            p.cards.push(card);
+            msg = `${p.name} kreeg ${variant !== 'None' ? variant + ' ' : ''}${card.title}`;
         }
         else if (k === 'custom') {
             x = x || {};
