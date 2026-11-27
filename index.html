@@ -398,6 +398,40 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
   .game-card .card-stats { flex: 0 0 auto; margin: 0 0 0 auto; padding: 0; text-align: right; }
   .game-card .card-preview { margin-top: 2px; }
 }
+
+.mini-card { --m: #8c8c8c; position: relative; display: flex; align-items: center; gap: 12px; margin: 10px 0; padding: 10px 12px 8px 54px; min-height: 66px; color: #111; background-color: #fff; border: 2px solid #111; box-shadow: 3px 3px 0 #0b0806;
+  background-image: linear-gradient(90deg, transparent 40px, var(--m) 40px, var(--m) 42px, transparent 42px), repeating-linear-gradient(180deg, transparent 0 19px, rgba(63,176,240,.8) 19px 20px); background-position: 0 0, 0 12px; background-repeat: no-repeat, repeat; }
+.mini-card.rarity-Uncommon { --m: #6cc55a; } .mini-card.rarity-Rare { --m: #3fb0f0; } .mini-card.rarity-Legendary { --m: #e8b53a; }
+.mini-card.variant-Cursed::before, .mini-card.variant-Blessed::before { width: 28px; height: 28px; top: 6px; left: 6px; }
+.mc-rar { position: absolute; top: 1px; right: 8px; font: 700 13px 'Patrick Hand', 'Segoe Print', cursive; color: var(--m); text-shadow: 0 0 2px #fff; }
+.mc-icon { font-size: 34px; filter: grayscale(1) brightness(.4) contrast(1.8) url(#ink); }
+.mc-title { font-family: 'Permanent Marker', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive; font-size: 17px; text-shadow: 0 0 3px #fff, 0 0 3px #fff; }
+.mc-stats { font-family: 'Patrick Hand', 'Segoe Print', cursive; font-size: 17px; text-shadow: 0 0 3px #fff, 0 0 3px #fff; }
+.mc-stats span { color: #111 !important; }
+.mini-card.variant-Cursed .mc-title { color: #d8302c; } .mini-card.variant-Blessed .mc-title { color: #f6cf1c; -webkit-text-stroke: .8px #8a6a00; text-shadow: none; }
+.mini-card.variant-Cursed, .mini-card.variant-Blessed { border: 2px solid #111 !important; box-shadow: 3px 3px 0 #0b0806 !important; }
+
+/* ===== full-width layout, actions on the player cards, side column ===== */
+.container { max-width: 1700px !important; width: calc(100% - 24px); box-sizing: border-box; }
+#screen-menu, #screen-lobby { max-width: 780px; margin: 0 auto; }
+.game-layout { display: grid !important; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.side-col { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 12px; min-width: 0; }
+.side-col .combat-log { min-height: 130px; max-height: 130px; background: #17110d; border: 2px solid #0b0806; padding: 6px 8px; margin: 0; }
+.side-col details { margin: 0 !important; background: #211913; border: 2px solid #0b0806; padding: 6px 10px; }
+.reactbar { display: flex; gap: 6px; flex-wrap: wrap; } .reactbar button { flex: 1; padding: 6px 4px; min-height: 36px; font-size: 18px; margin: 0; background: #3d2f25; }
+#game-players-list { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.player-card { padding: 12px; }
+.pc-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.pc-actions button { flex: 1 1 90px; margin: 0; padding: 8px 6px; font-size: 13px; line-height: 1.15; }
+.pc-actions .heavy { background: #7a4a6d; } .pc-actions .def { background: #3d6f78; }
+.intermission { text-align: center; padding: 16px; border: 3px dashed #e0a93b; background: #211913; margin: 10px 0; }
+.bigcode { font-family: 'Alfa Slab One', Georgia, serif; font-size: clamp(34px, 8vw, 68px); letter-spacing: .15em; color: #e0a93b; text-shadow: 3px 3px 0 #000; margin: 8px 0 14px; }
+.float-emoji { position: fixed; bottom: 14px; z-index: 110; font-size: 36px; pointer-events: none; text-align: center; animation: floatUp 2.4s ease-out forwards; }
+.float-emoji small { display: block; font-size: 11px; font-weight: 700; color: #f3e6c8; text-shadow: 1px 1px 0 #000; }
+@keyframes floatUp { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-65vh) rotate(8deg); opacity: 0; } }
+@media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } .side-col { position: static; } }
+.side-col .turn-sidebar { width: auto !important; max-width: none !important; flex: none; }
+#dice-area { min-height: 84px; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow:wght@400;600;700&family=Permanent+Marker&family=Patrick+Hand&display=swap" rel="stylesheet">
@@ -418,6 +452,7 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
         <input type="text" id="username" placeholder="Jouw Naam">
         <br><br>
         <button class="menu-btn" onclick="createHost()">Host Een Nieuwe Game</button>
+        
         <hr style="border-color: #4a3a2d;">
         <h3>Join een Host:</h3>
         <input type="text" id="join-code" placeholder="Voer Host Code in">
@@ -510,22 +545,25 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
                     <div id="dice" class="dice">20</div>
                 </div>
 
+                
+
                 <hr style="border-color: #4a3a2d;">
 
-                <details style="margin:8px 0"><summary style="cursor:pointer;color:#e0a93b">💬 Chat</summary>
-                    <div id="chat-log-g" style="background:#17110d;border-radius:8px;padding:8px;height:110px;overflow-y:auto;font-size:14px;margin:6px 0"></div>
-                    <div class="chatrow"><input type="text" id="chat-input-g" maxlength="200" placeholder="Bericht..." onkeydown="if(event.key==='Enter')sendChat('-g')" style="max-width:none;width:calc(100% - 100px)">
-                    <button onclick="sendChat('-g')">Stuur</button></div></details>
-                <div id="combat-log" class="combat-log"></div>
                 <div id="game-action-area">
                     <h3>Wachten op het spel...</h3>
                 </div>
             </div>
 
-            <div id="turn-sidebar" class="turn-sidebar" style="display:none;">
+            <div class="side-col"><div id="turn-sidebar" class="turn-sidebar" style="display:none;">
                 <h4>🎲 Beurtvolgorde</h4>
                 <div class="turn-sidebar-list" id="turn-sidebar-list"></div>
             </div>
+<details style="margin:8px 0"><summary style="cursor:pointer;color:#e0a93b">💬 Chat</summary>
+                    <div id="chat-log-g" style="background:#17110d;border-radius:8px;padding:8px;height:110px;overflow-y:auto;font-size:14px;margin:6px 0"></div>
+                    <div class="chatrow"><input type="text" id="chat-input-g" maxlength="200" placeholder="Bericht..." onkeydown="if(event.key==='Enter')sendChat('-g')" style="max-width:none;width:calc(100% - 100px)">
+                    <button onclick="sendChat('-g')">Stuur</button></div></details>
+                <div id="combat-log" class="combat-log"></div>
+                <div class="reactbar"><button onclick="sendReact('👏')">👏</button><button onclick="sendReact('😂')">😂</button><button onclick="sendReact('💀')">💀</button><button onclick="sendReact('🔥')">🔥</button><button onclick="sendReact('😮')">😮</button><button onclick="sendReact('❤️')">❤️</button></div></div>
         </div>
     </div>
 </div>
@@ -857,13 +895,16 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
     const LEET = { '0': 'o', '1': 'i', '!': 'i', '3': 'e', '4': 'a', '@': 'a', '5': 's', '$': 's' };
     const wnorm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[01!345@$]/g, m => LEET[m]).replace(/[^a-z]/g, '').replace(/(.)\1+/g, '$1');
     const BAD_SUB = ['kanker', 'tering', 'tyfus', 'klootzak', 'flikker', 'mongool', 'neuk', 'godver', 'fuck', 'shit', 'bitch', 'cunt', 'nigg', 'fagg', 'whore', 'slut', 'asshole', 'bastard', 'pussy', 'retard', 'motherfuck'].map(wnorm);
-    const BAD_EXACT = new Set(['kut', 'kutje', 'kutten', 'lul', 'lullen', 'lulletje', 'pik', 'tiet', 'tieten', 'eikel', 'hoer', 'hoeren', 'hoertje', 'dick', 'cock', 'gvd', 'kkr', 'tbc'].map(wnorm).filter(x => x !== 'tbc'));
+    const BAD_EXACT = ['kut', 'lul', 'pik', 'tiet', 'tieten', 'eikel', 'hoer', 'dick', 'cock', 'gvd', 'kkr'].map(wnorm);
+    const BAD_RE = new RegExp('^(?:' + BAD_EXACT.concat(BAD_SUB).sort((a, b) => b.length - a.length).join('|') + ')+(?:je|jes|en|s|er|ers|ig|ing)?$');
+    const isBad = n => !!n && (BAD_SUB.some(s => n.includes(s)) || BAD_RE.test(n));
     function censor(text) {
-        return String(text).split(/(\s+)/).map(t => {
-            if (!t.trim()) return t;
-            let n = wnorm(t);
-            return n && (BAD_EXACT.has(n) || BAD_SUB.some(s => n.includes(s))) ? '#'.repeat(Math.min(t.length, 12)) : t;
-        }).join('');
+        let s = String(text), toks = s.split(/\s+/).filter(Boolean), bad = toks.some(t => isBad(wnorm(t)));
+        if (!bad) { // spaced-out letters: "f u c k", "k a n k e r"
+            let run = '';
+            for (let t of toks) { let n = wnorm(t); if (n.length >= 1 && n.length <= 2) { run += n; if (isBad(run)) { bad = true; break; } } else run = ''; }
+        }
+        return bad ? '#'.repeat(Math.max(4, Math.min(s.length, 40))) : s;
     }
 
     // ---- visible events: card gained/lost, HP, wins, admin actions
@@ -907,6 +948,7 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
         else if (e.t === 'kill') popFx(e.pid, 'UIT', R, false);
         else if (e.t === 'win') toast(`${e.name} wint de ronde (admin)`, 'admin');
         else if (e.t === 'grant') toast(mine ? (e.on ? '👑 Je bent nu admin' : 'Je admin-rechten zijn ingetrokken') : `${e.name}: ${e.on ? 'nu admin' : 'geen admin meer'}`, 'admin');
+        else if (e.t === 'react') { let d = document.createElement('div'); d.className = 'float-emoji'; d.style.left = (6 + Math.random() * 84) + '%'; d.innerHTML = `${e.e}<small>${e.name}</small>`; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
         else if (e.t === 'global') toast('🛠️ ' + e.text, 'admin');
     }
     function processEvents() {
@@ -944,14 +986,14 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
                 broadcastState();
                 return;
             }
-            if (gameState.phase !== 'LOBBY' || gameState.players.length >= 8) {
-                conn.send({ type: 'REJECT', reason: gameState.phase !== 'LOBBY' ? 'Het spel is al bezig.' : 'De lobby is vol (max 8).' });
+            if ((gameState.phase !== 'LOBBY' && gameState.phase !== 'INTERMISSION') || gameState.players.length >= 8) {
+                conn.send({ type: 'REJECT', reason: (gameState.phase !== 'LOBBY' && gameState.phase !== 'INTERMISSION') ? 'Het spel is al bezig. Je kunt joinen in de pauze tussen twee rondes.' : 'De lobby is vol (max 8).' });
                 setTimeout(() => conn.close(), 300);
                 return;
             }
             let base = clean(data.name) || 'Speler', nm = base, n = 2;
             while (gameState.players.some(p => p.name === nm)) nm = base + n++;
-            addChat('', nm + ' doet mee'); gameState.players.push({ id: conn.peer, name: nm, hp: gameState.settings.startHp, maxHp: gameState.settings.startHp, wins: 0, cards: [] });
+            addChat('', nm + ' doet mee'); gameState.players.push({ fresh: gameState.phase === 'INTERMISSION', id: conn.peer, name: nm, hp: gameState.settings.startHp, maxHp: gameState.settings.startHp, wins: 0, cards: [] });
             updateLobbyUI();
             broadcastState();
         }
@@ -962,6 +1004,7 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
             gainCard(p, c);
             advanceCardPick();
         }
+        if (data.type === 'REACT') hostReact(conn.peer, data.e);
         if (data.type === 'ADMIN') {
             let s = gameState.players.find(x => x.id === conn.peer), a = data.a;
             if (!s || !s.admin || !gameState.customMode || !a || typeof a !== 'object') return;
@@ -1172,7 +1215,7 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
             p.hp = p.left ? 0 : st.hp; p.pity = 0; p.guard = false;
             p.maxHp = st.hp;
         });
-        gameState.phase = 'TURN'; gameState.lastRoll = null;
+        pickMutator(); gameState.phase = 'TURN'; gameState.lastRoll = null;
         setTimeout(() => { if (gameState.phase === 'TURN' && gameState.players.filter(p => p.hp > 0).length < 2) { checkRoundEnd(false); updateStatusBanner(); broadcastState(); } }, 50);
         
         let rolls = [];
@@ -1197,7 +1240,7 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
     let reconnects = 0, rejected = false, lastSeenRoll = 0, rollSeq = 0, muted = false, AC = null, lastTurnKey = '', overPlayed = false;
 
     function addLog(t) { (gameState.log = gameState.log || []).push(t); if (gameState.log.length > 6) gameState.log.shift(); }
-    function hitChance(a, t, heavy) { let need = (t.guard ? 4 : 0) + (heavy ? 3 : 0) + calculatePlayerStats(t).def - calculatePlayerStats(a).atk - (a.pity || 0); return Math.round(Math.min(20, Math.max(1, 21 - need)) * 5); }
+    function hitChance(a, t, heavy) { let mut = (gameState.mutator || {}).id, def = calculatePlayerStats(t).def + (t.guard ? 4 : 0), mod = calculatePlayerStats(a).atk + (a.pity || 0) - (heavy ? 3 : 0) - (mut === 'fog' ? 3 : 0), n = 0; for (let r = 1; r <= 20; r++) if (r === 20 || (mut === 'lucky' && r >= 19) || r === def || r + mod >= def) n++; return n * 5; }
 
     function nextAlive() {
         let n = gameState.turnOrder.length, i = 0;
@@ -1205,21 +1248,44 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
         while (i <= n && gameState.players.find(p => p.id === gameState.turnOrder[gameState.turnIndex]).hp <= 0);
     }
 
+    const MUTATORS = [
+        { id: 'double', name: '🔥 Dubbele schade', desc: 'Alle schade x2' },
+        { id: 'fog', name: '🌫️ Mist', desc: 'Iedereen heeft -3 om te raken' },
+        { id: 'vamp', name: '🧛 Vampierronde', desc: 'Elke treffer geneest je 1 HP' },
+        { id: 'lucky', name: '🍀 Gelukskind', desc: 'Crit op een 19 én een 20' },
+        { id: 'glass', name: '🔮 Glazen kanonnen', desc: 'Halve HP, maar +1 DMG' }];
+    function pickMutator() {
+        let m = Math.random() < 0.35 ? null : MUTATORS[Math.floor(Math.random() * MUTATORS.length)];
+        gameState.mutator = m ? { id: m.id, name: m.name, desc: m.desc } : null;
+        if (!m) return;
+        if (m.id === 'glass') gameState.players.forEach(p => { if (p.hp > 0) p.hp = Math.max(1, Math.ceil(p.hp / 2)); });
+        addLog(`🎲 Ronde-regel: ${m.name} (${m.desc})`);
+        addEvent('global', null, { text: `Ronde-regel: ${m.name} – ${m.desc}` });
+    }
     function finishRound(winner) {
         winner.wins++;
         gameState.roundWinnerId = winner.id;
+        gameState.mutator = null;
         if (winner.wins >= gameState.settings.targetWins) {
             gameState.phase = 'GAME_OVER';
             gameState.statusMessage = `🎉 ${winner.name} HEEFT HET SPEL GEWONNEN! 🎉`;
             return;
         }
-        gameState.phase = 'CARD_PICK';
-        let rule = gameState.settings.cardRule, live = gameState.players.filter(p => !p.left);
-        gameState.cardPickQueue = rule === 'winner' ? [winner.id] : rule === 'all' ? live.map(p => p.id) : live.filter(p => p.id !== winner.id).map(p => p.id);
-        gameState.pickerIndex = 0;
-        gameState.statusMessage = `Ronde afgelopen! ${winner.name} wint deze ronde!`;
+        gameState.phase = 'INTERMISSION';
+        gameState.statusMessage = `Ronde afgelopen! ${winner.name} wint deze ronde.`;
         addLog(`🏆 ${winner.name} wint de ronde!`);
+    }
+    function hostContinue() {
+        if (!isHost || gameState.phase !== 'INTERMISSION') return;
+        let winner = gameState.roundWinnerId, rule = gameState.settings.cardRule, live = gameState.players.filter(p => !p.left);
+        let q = rule === 'winner' ? live.filter(p => p.id === winner) : rule === 'all' ? live.slice() : live.filter(p => p.id !== winner);
+        live.forEach(p => { if (p.fresh && !q.includes(p)) q.push(p); p.fresh = false; });
+        gameState.cardPickQueue = q.map(p => p.id);
+        gameState.pickerIndex = 0;
+        gameState.phase = 'CARD_PICK';
         if (gameState.cardPickQueue.length) generateCardsForQueue(); else startCombatPhase();
+        updateStatusBanner();
+        broadcastState();
     }
 
     function checkRoundEnd(advance) {
@@ -1274,36 +1340,29 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
     }
     function performAttack(attackerId, targetId, mode) {
         if (gameState.phase !== 'TURN' || gameState.busy || gameState.paused || attackerId !== gameState.turnOrder[gameState.turnIndex]) return;
-        let attacker = gameState.players.find(p => p.id === attackerId);
-        let target = gameState.players.find(p => p.id === targetId);
+        let attacker = gameState.players.find(p => p.id === attackerId), target = gameState.players.find(p => p.id === targetId);
         if (!attacker || !target || target.id === attacker.id || target.hp <= 0 || attacker.hp <= 0) return;
-
         let aStats = calculatePlayerStats(attacker), tStats = calculatePlayerStats(target);
+        let mut = gameState.mutator ? gameState.mutator.id : '', heavy = mode === 'heavy';
+        let def = tStats.def + (target.guard ? 4 : 0);
+        let mod = aStats.atk + (attacker.pity || 0) - (heavy ? 3 : 0) - (mut === 'fog' ? 3 : 0);
         let roll = Math.floor(Math.random() * 20) + 1;
-        let isCrit = roll === 20;
-        let bonus = attacker.pity || 0, heavy = mode === 'heavy', def = tStats.def + (target.guard ? 4 : 0);
-        let hit = isCrit || (roll + aStats.atk + bonus - (heavy ? 3 : 0) >= def);
+        let isCrit = roll === 20 || (mut === 'lucky' && roll >= 19);
+        let hit = isCrit || roll === def || roll + mod >= def;   // rolling exactly the AC is always a hit
         attacker.guard = false;
-        let dmg = Math.ceil(aStats.dmg * (heavy ? 1.5 : 1)) * (isCrit ? 2 : 1), killed = false;
-        attacker.pity = hit ? 0 : bonus + 1;
-
+        attacker.pity = hit ? 0 : (attacker.pity || 0) + 1;
+        let dmg = Math.ceil((aStats.dmg + (mut === 'glass' ? 1 : 0)) * (heavy ? 1.5 : 1)) * (isCrit ? 2 : 1) * (mut === 'double' ? 2 : 1), killed = false;
         if (hit) {
             target.hp = Math.max(0, target.hp - dmg);
             killed = target.hp <= 0;
+            if (mut === 'vamp') attacker.hp = Math.min(aStats.hp, attacker.hp + 1);
         }
         gameState.lastRoll = { id: ++rollSeq, attacker: attacker.name, targetId: target.id, roll, isCrit, hit, dmg, killed };
-        addLog(hit
-            ? `${isCrit ? '💥 CRIT! ' : '⚔️ '}${attacker.name} raakt ${target.name} voor ${dmg}${killed ? ' 💀' : ''} (🎲${roll}${aStats.atk ? (aStats.atk > 0 ? '+' : '') + aStats.atk : ''} vs AC ${def})`
-            : `💨 ${attacker.name} mist ${target.name} (🎲${roll}${aStats.atk ? (aStats.atk > 0 ? '+' : '') + aStats.atk : ''} vs AC ${def})`);
+        let calc = `🎲${roll}${mod >= 0 ? '+' : ''}${mod}=${roll + mod} vs AC ${def}`;
+        addLog(hit ? `${isCrit ? '💥 CRIT! ' : '⚔️ '}${attacker.name} raakt ${target.name} voor ${dmg}${killed ? ' 💀' : ''} (${calc})` : `💨 ${attacker.name} mist ${target.name} (${calc})`);
         gameState.busy = true;
         broadcastState();
-
-        setTimeout(() => {
-            gameState.busy = false;
-            checkRoundEnd(true);
-            updateStatusBanner();
-            broadcastState();
-        }, (gameState.settings.rollSpeed || 600) + 600);
+        setTimeout(() => { gameState.busy = false; checkRoundEnd(true); updateStatusBanner(); broadcastState(); }, (gameState.settings.rollSpeed || 600) + 600);
     }
 
     function beep(f, d, type = 'square', v = 0.05) {
@@ -1319,10 +1378,15 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
         } catch (e) {}
     }
     function toggleMute() { muted = !muted; document.getElementById('mute-btn').innerText = muted ? '🔇' : '🔊'; }
+    function hostReact(id, e) {
+        let p = gameState.players.find(x => x.id === id), now = Date.now();
+        if (!p || !['👏', '😂', '💀', '🔥', '😮', '❤️'].includes(e) || now - (p.lastReact || 0) < 600) return;
+        p.lastReact = now; addEvent('react', p, { e }); broadcastState();
+    }
+    function sendReact(e) { if (isHost) hostReact(myId, e); else if (clientConn && clientConn.open) clientConn.send({ type: 'REACT', e }); }
     function copyLink() {
-        let url = location.href.split(/[?#]/)[0] + '?join=' + document.getElementById('display-code').innerText;
-        try { navigator.clipboard.writeText(url); setConnStatus('lobby-conn-status', '✅ Link gekopieerd!', 'success'); }
-        catch (e) { prompt('Kopieer deze link:', url); }
+        let url = location.href.split(/[?#]/)[0] + '?join=' + curHostCode;
+        try { navigator.clipboard.writeText(url); toast('Link gekopieerd!'); } catch (e) { prompt('Kopieer deze link:', url); }
     }
     function popText(id, txt) {
         let el = document.getElementById('player-card-' + id);
@@ -1399,7 +1463,7 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
         }
 
         const banner = document.getElementById('round-result-banner');
-        if (gameState.roundWinnerId && gameState.phase === 'CARD_PICK') {
+        if (gameState.roundWinnerId && (gameState.phase === 'CARD_PICK' || gameState.phase === 'INTERMISSION')) {
             banner.style.display = 'block';
             if (gameState.roundWinnerId === myId) {
                 banner.className = 'round-banner win';
@@ -1432,7 +1496,7 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
             turnSidebar.style.display = 'none';
         }
 
-        document.getElementById('status-banner').innerText = gameState.statusMessage || "Spel bezig...";
+        document.getElementById('status-banner').innerText = (gameState.statusMessage || "Spel bezig...") + (gameState.phase === 'TURN' && gameState.mutator ? `   |   ${gameState.mutator.name}: ${gameState.mutator.desc}` : '');
         { let cg = document.getElementById('chat-log-g'); cg.innerHTML = (gameState.chat || []).map(m => m.n ? `<div><b style="color:#e0a93b">${m.n}:</b> ${m.t}</div>` : `<div style="color:#888"><i>${m.t}</i></div>`).join(''); cg.scrollTop = cg.scrollHeight; }
         document.getElementById('combat-log').innerHTML = (gameState.log || []).slice().reverse().map((l, i) => `<div style="opacity:${1 - i * 0.15}">${l}</div>`).join('');
 
@@ -1440,12 +1504,18 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
         turnNotify(activeTurnPlayerId);
         document.getElementById('game-players-list').innerHTML = gameState.players.map(p => {
             let st = calculatePlayerStats(p);
+            let acts = '';
+            if (gameState.phase === 'TURN' && activeTurnPlayerId === myId && me && me.hp > 0 && !gameState.busy && !gameState.paused && p.hp > 0) {
+                let dis = attackCooldownActive ? 'disabled' : '';
+                if (p.id !== myId) acts = `<div class="pc-actions"><button ${dis} onclick="event.stopPropagation();sendAttack('${p.id}','normal')">⚔️ Aanval ${hitChance(me, p)}%</button><button ${dis} class="heavy" onclick="event.stopPropagation();sendAttack('${p.id}','heavy')">🔨 Zwaar ${hitChance(me, p, true)}%</button></div>`;
+                else acts = `<div class="pc-actions"><button ${dis} class="def" onclick="event.stopPropagation();sendDefend()">🛡️ Verdedigen +4 AC</button></div>`;
+            }
             return `
             <div id="player-card-${p.id}" class="player-card ${p.hp <= 0 ? 'dead' : ''} ${gameState.phase === 'TURN' && activeTurnPlayerId === p.id ? 'active-turn' : ''}" onclick="viewPlayerCards('${p.id}')">
                 <span class="turn-badge">Aan de beurt</span>
                 <strong>${p.name}</strong>${p.left ? ' (vertrokken)' : ''}${p.guard ? ' 🛡️' : ''}<br>
                 ❤️ ${p.hp}/${st.hp} · 🏆 ${p.wins}<div class="hpbar"><i style="width:${Math.max(0, p.hp / st.hp * 100)}%"></i></div>
-                🛡️ AC: ${st.def}
+                🛡️ AC: ${st.def}${acts}
             </div>
             `;
         }).join('');
@@ -1459,7 +1529,10 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
 
         const actionArea = document.getElementById('game-action-area');
 
-        if (gameState.phase === 'CARD_PICK') {
+        if (gameState.phase === 'INTERMISSION') {
+            actionArea.innerHTML = `<div class="intermission"><h3>⏸️ Pauze tussen de rondes</h3><p>Nieuwe spelers kunnen nu nog meedoen met deze code:</p><div class="bigcode">${curHostCode}</div><button onclick="copyLink()">📋 Kopieer uitnodigingslink</button>`
+                + (isHost ? `<div><button class="menu-btn" onclick="hostContinue()">▶ Doorgaan naar de volgende ronde</button></div>` : '<p>Wachten tot de host doorgaat...</p>') + '</div>';
+        } else if (gameState.phase === 'CARD_PICK') {
             let activePickerId = gameState.cardPickQueue[gameState.pickerIndex];
             let choices = gameState.cardChoicesMap[activePickerId] || [];
             
@@ -1487,14 +1560,7 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
                 if (me.hp <= 0) {
                     actionArea.innerHTML = `<h3>Je bent uitgeschakeld deze ronde! Wacht op de volgende ronde.</h3>`;
                 } else {
-                    let html = `<h3>Jouw beurt! Kies wie je wilt aanvallen:</h3><button ${attackCooldownActive ? 'disabled' : ''} onclick="sendDefend()" style="background:#3d6f78">🛡️ Verdedigen (+4 AC)</button><div class="attack-buttons-grid">`;
-                    gameState.players.forEach(p => {
-                        if (p.id !== myId && p.hp > 0) {
-                            html += `<button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}','normal')">${attackCooldownActive ? 'Cooldown...' : 'Val ' + p.name + ' aan (' + hitChance(me, p) + '% kans)'}</button><button ${attackCooldownActive ? 'disabled' : ''} onclick="sendAttack('${p.id}','heavy')" style="background:#7a4a6d">${attackCooldownActive ? '...' : '🔨 Zwaar (' + hitChance(me, p, true) + '%, x1.5 dmg)'}</button>`;
-                        }
-                    });
-                    html += `</div>`;
-                    actionArea.innerHTML = html;
+                    actionArea.innerHTML = '<h3>Jouw beurt! Klik bij een tegenstander op ⚔️ Aanval of 🔨 Zwaar, of verdedig bij je eigen kaart.</h3>';
                 }
             } else {
                 let activeP = gameState.players.find(p => p.id === activeTurnPlayerId);
@@ -1760,9 +1826,10 @@ input[type="text"], input[type="number"], select { border: 2px solid #0b0806; bo
             container.innerHTML = "<p>Deze speler heeft nog geen kaarten.</p>";
         } else {
             container.innerHTML = player.cards.map((c, ci) => `
-                <div style="background:#17110d; padding:10px; margin:6px 0; border-radius:6px; border-left:4px solid ${c.rarity === 'Legendary' ? '#e0a93b' : '#4f8a8b'};">
-                    ${isAdmin() && gameState.customMode ? `<button class="btn-kick" style="float:right;width:auto" onclick="adminPlayer('${player.id}','rm',${ci})">✖</button>` : ''}<strong>${c.rarity} ${c.variant !== 'None' ? `(${c.variant})` : ''}</strong> - ${c.title}<br>
-                    ${cardText(c)}
+                <div class="mini-card rarity-${c.rarity} variant-${c.variant}">
+                    <span class="mc-rar">${c.rarity}</span><span class="mc-icon">${c.icon}</span>
+                    <div style="flex:1;min-width:0"><div class="mc-title">${c.title}</div><div class="mc-stats">${cardText(c).replace(/<br>/g, ' · ')}</div></div>
+                    ${isAdmin() && gameState.customMode ? `<button class="btn-kick" style="width:auto;margin:0" onclick="adminPlayer('${player.id}','rm',${ci})">✖</button>` : ''}
                 </div>
             `).join('');
         }
