@@ -8,6 +8,7 @@ Teun Spelten (teletubbie toast): Product
 Luuk Munnik (luukmunnik1610-crypto): Marketing
 
 Dogu Senyurt (misteregg211-tech): Kwaliteit
+
 # [Projectnaam]
 
 ## Klantwens
