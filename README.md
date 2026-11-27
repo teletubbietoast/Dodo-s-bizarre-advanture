@@ -9,12 +9,12 @@ Luuk Munnik (luukmunnik1610-crypto): Marketing
 
 Dogu Senyurt (misteregg211-tech): Kwaliteit
 
-The Cards
+## The Cards
 
 ## Klantwens
 [Wie is de klant en wat wil die kunnen doen?]
 
-## Hoofdissues
+# Hoofdissues
 - [D) Klantvraag en ontwerp](https://github.com/teletubbietoast/Dodo-s-bizarre-advanture/issues/9)
 - [E) Bouw en eerste tests](https://github.com/teletubbietoast/Dodo-s-bizarre-advanture/issues/10)
 - [I) Verbetering en hertests](https://github.com/teletubbietoast/Dodo-s-bizarre-advanture/issues/11)
